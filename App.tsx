@@ -4,6 +4,8 @@ import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, LogIn, Lo
 import { projects } from './data';
 import GateModal from './components/GateModal';
 import AuthModal from './components/AuthModal';
+import ChatBot from './components/ChatBot';
+import ProjectCard from './components/ProjectCard';
 import { ProjectData } from './types';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
@@ -142,18 +144,6 @@ const MainContent = () => {
     }
   };
 
-  const getShareUrls = (project: ProjectData) => {
-    const baseUrl = window.location.origin;
-    // Fallback to EN if language not available in object (though it should be)
-    const desc = project.shortDescription[language] || project.shortDescription['en'];
-    const shareText = encodeURIComponent(`${t('btn.share')}: ${project.title} - ${desc}`);
-    
-    return {
-      twitter: `https://twitter.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(baseUrl)}`,
-      linkedin: `https://www.linkedin.com/feed/?shareActive=true&text=${shareText} ${encodeURIComponent(baseUrl)}`
-    };
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-soul-dark font-sans pb-20 transition-colors duration-300">
       <NavBar 
@@ -204,87 +194,13 @@ const MainContent = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => {
-              const shareUrls = getShareUrls(project);
-              const shortDesc = project.shortDescription[language] || project.shortDescription['en'];
-
-              return (
-                <div key={project.id} className="group bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl dark:shadow-slate-900/50 transition-all duration-300 overflow-hidden border border-slate-100 dark:border-slate-800 flex flex-col">
-                  <div className="relative h-48 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                    <img 
-                      src={project.imageUrl} 
-                      alt={project.title} 
-                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute bottom-4 left-4 z-20">
-                      <span className="inline-block px-3 py-1 bg-soul-primary text-white text-xs font-bold rounded-full mb-2">
-                        {project.category}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6 flex-1 flex flex-col">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-soul-primary dark:group-hover:text-soul-primary transition-colors flex-1">
-                        {project.title}
-                      </h3>
-                      <div className="flex gap-2 ml-2">
-                        <a 
-                          href={shareUrls.linkedin} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-slate-400 hover:text-[#0077b5] dark:hover:text-[#0077b5] transition-colors p-1"
-                          title={`${t('btn.share')} on LinkedIn`}
-                        >
-                          <Linkedin size={18} />
-                        </a>
-                        <a 
-                          href={shareUrls.twitter} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-slate-400 hover:text-black dark:hover:text-white transition-colors p-1"
-                          title={`${t('btn.share')} on X (Twitter)`}
-                        >
-                          <Twitter size={18} />
-                        </a>
-                      </div>
-                    </div>
-                    
-                    <p className="text-slate-600 dark:text-slate-300 mb-6 flex-1 line-clamp-3">
-                      {shortDesc}
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                      <div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('label.ask')}</p>
-                        <p className="font-bold text-slate-900 dark:text-white">{project.fundingAsk}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('label.valuation')}</p>
-                        <p className="font-bold text-slate-900 dark:text-white">{project.valuation}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {project.tags.map(tag => (
-                        <span key={tag} className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs rounded-md font-medium">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <button 
-                      onClick={() => handleRequestAccess(project)}
-                      className="w-full py-3 px-4 bg-white dark:bg-slate-800 border-2 border-soul-dark dark:border-white text-soul-dark dark:text-white font-bold rounded-lg hover:bg-soul-dark dark:hover:bg-white hover:text-white dark:hover:text-soul-dark transition-all flex items-center justify-center gap-2 group/btn"
-                    >
-                      {t('btn.learnMore')}
-                      <ArrowRight size={18} className="transform group-hover/btn:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            {projects.map((project) => (
+              <ProjectCard 
+                key={project.id} 
+                project={project} 
+                onRequestAccess={handleRequestAccess} 
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -333,6 +249,8 @@ const MainContent = () => {
         isOpen={isAuthOpen} 
         onClose={() => setIsAuthOpen(false)} 
       />
+
+      <ChatBot />
     </div>
   );
 };

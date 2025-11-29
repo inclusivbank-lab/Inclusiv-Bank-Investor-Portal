@@ -8,7 +8,8 @@ export const projects: ProjectData[] = [
     category: 'Fintech / Social Impact',
     fundingAsk: '$10.5M Seed',
     valuation: '$105M Pre-money',
-    imageUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    // Hands reaching in unity
+    imageUrl: 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=800&q=80',
     tags: ['Fintech', 'Impact Investing', 'Financial Inclusion'],
     shortDescription: {
       en: "A comprehensive ecosystem delivering financial dignity to LGBTQ+, seniors, and migrants with measurable social impact.",
@@ -29,7 +30,8 @@ export const projects: ProjectData[] = [
     category: 'Clean Energy / Biotech',
     fundingAsk: '$5M Seed',
     valuation: 'Undisclosed',
-    imageUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb7d5fa5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    // Trees/Forest with light
+    imageUrl: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80',
     tags: ['Biotech', 'Clean Energy', 'Hardware'],
     shortDescription: {
       en: "The world's first non-invasive bio-electrical harvesting platform transforming trees into clean power stations.",
@@ -50,7 +52,8 @@ export const projects: ProjectData[] = [
     category: 'EdTech / HR Tech',
     fundingAsk: '$10M Seed',
     valuation: 'Undisclosed',
-    imageUrl: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    // Global connections/Network
+    imageUrl: 'https://images.unsplash.com/photo-1529101091760-61df6be5d18b?auto=format&fit=crop&w=800&q=80',
     tags: ['AI', 'Blockchain', 'Social Impact'],
     shortDescription: {
       en: "AI-driven career homologation making professional recognition borderless and verifiable.",
@@ -71,7 +74,8 @@ export const projects: ProjectData[] = [
     category: 'Web3 / Social Economy',
     fundingAsk: '$5M Pre-Seed',
     valuation: '$25M Cap',
-    imageUrl: 'https://images.unsplash.com/photo-1621504450168-38f647315648?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    // Time/Clock concept
+    imageUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=800&q=80',
     tags: ['Crypto', 'Social Media', 'Human Economy'],
     shortDescription: {
       en: "A sovereign human economy where time is currency and kindness is status.",
@@ -92,7 +96,8 @@ export const projects: ProjectData[] = [
     category: 'Blockchain / Energy',
     fundingAsk: '$25M Series A',
     valuation: 'Undisclosed',
-    imageUrl: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    // Solar panels
+    imageUrl: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80',
     tags: ['Blockchain', 'ESG', 'Solar'],
     shortDescription: {
       en: "The first blockchain defined by the sun, using Proof-of-Solar™ consensus.",
@@ -113,7 +118,8 @@ export const projects: ProjectData[] = [
     category: 'Fintech / EdTech',
     fundingAsk: '$3.5M Series A',
     valuation: 'Undisclosed',
-    imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    // Child saving money/Piggy bank
+    imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
     tags: ['Youth', 'Education', 'Fintech'],
     shortDescription: {
       en: "AI-powered, gamified digital wallet designed specifically for children ages 5-18.",
@@ -134,7 +140,8 @@ export const projects: ProjectData[] = [
     category: 'Fintech',
     fundingAsk: '$5M Series A',
     valuation: 'Undisclosed',
-    imageUrl: 'https://images.unsplash.com/photo-1655720406100-3958d2c949c6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    // Diverse community/Pride colors
+    imageUrl: 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&w=800&q=80',
     tags: ['LGBTQ+', 'Banking', 'Inclusion'],
     shortDescription: {
       en: "The digital wallet for the global LGBTQ+ community (Love, Unity, Care, Acceptance).",
@@ -155,7 +162,8 @@ export const projects: ProjectData[] = [
     category: 'Web3 / Conservation',
     fundingAsk: '£4M Seed',
     valuation: 'Undisclosed',
-    imageUrl: 'https://images.unsplash.com/photo-1448375240586-dfd8d395ea6c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    // Forest/Nature
+    imageUrl: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=800&q=80',
     tags: ['NFT', 'Conservation', 'Climate'],
     shortDescription: {
       en: "Turning carbon offsets into digital proof of impact via living NFTs.",
