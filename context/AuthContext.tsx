@@ -84,13 +84,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
+  const socialLogin = async (provider: 'google' | 'linkedin'): Promise<void> => {
+    setIsLoading(true);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const mockUser: User = {
+          id: 'usr_' + provider + '_' + Math.random().toString(36).substr(2, 9),
+          name: provider === 'google' ? 'Google User' : 'LinkedIn User',
+          email: provider === 'google' ? 'user@gmail.com' : 'user@linkedin.com',
+          phone: '',
+          role: 'investor'
+        };
+        
+        setUser(mockUser);
+        localStorage.setItem('soulware_user', JSON.stringify(mockUser));
+        setIsLoading(false);
+        resolve();
+      }, 1000);
+    });
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('soulware_user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, socialLogin, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

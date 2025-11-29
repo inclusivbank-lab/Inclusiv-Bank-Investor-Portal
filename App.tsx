@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, LogIn, LogOut, User as UserIcon, Linkedin, Twitter } from 'lucide-react';
 import { projects } from './data';
 import GateModal from './components/GateModal';
 import AuthModal from './components/AuthModal';
@@ -20,10 +21,20 @@ const NavBar = ({
   return (
     <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-soul-primary to-soul-accent rounded-lg"></div>
-            <span className="font-serif text-xl font-bold text-slate-900 tracking-tight">Soulware<span className="text-soul-primary">Inv</span></span>
+        <div className="flex justify-between items-center h-24">
+          <div className="flex items-center">
+            {/* Logo Image - Please ensure 'logo.png' is in your public folder */}
+            <img 
+              src="/logo.png" 
+              alt="Soulware Ecosystem" 
+              className="h-20 w-auto object-contain"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.style.display = 'none';
+                // Fallback if image fails to load
+                e.currentTarget.parentElement?.insertAdjacentHTML('beforeend', '<span class="font-serif text-xl font-bold text-slate-900 tracking-tight">Soulware<span class="text-soul-primary">Inv</span></span>');
+              }}
+            />
           </div>
           <div className="flex items-center gap-4">
             <button 
@@ -77,12 +88,20 @@ const MainContent = () => {
     if (!user) {
       // If not logged in, force auth first
       setIsAuthOpen(true);
-      // We could store the intended project to open after login, 
-      // but for simplicity we'll just ask them to login.
     } else {
       setSelectedProject(project);
       setIsGateOpen(true);
     }
+  };
+
+  const getShareUrls = (project: ProjectData) => {
+    const baseUrl = window.location.origin; 
+    const shareText = encodeURIComponent(`${language === 'en' ? 'Check out' : 'Mira'} ${project.title}: ${language === 'en' ? project.shortDescription.en : project.shortDescription.es}`);
+    
+    return {
+      twitter: `https://twitter.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(baseUrl)}`,
+      linkedin: `https://www.linkedin.com/feed/?shareActive=true&text=${shareText} ${encodeURIComponent(baseUrl)}`
+    };
   };
 
   const t = {
@@ -98,7 +117,8 @@ const MainContent = () => {
     contactText: language === 'en' 
       ? 'Need more specific information about the ecosystem or a specific venture? Our team is ready to assist.'
       : '¿Necesita información más específica sobre el ecosistema o una empresa específica? Nuestro equipo está listo para ayudar.',
-    contactBtn: language === 'en' ? 'Get in Touch' : 'Contáctenos'
+    contactBtn: language === 'en' ? 'Get in Touch' : 'Contáctenos',
+    share: language === 'en' ? 'Share' : 'Compartir'
   };
 
   return (
@@ -151,60 +171,85 @@ const MainContent = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => (
-              <div key={project.id} className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-100 flex flex-col">
-                <div className="relative h-48 overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                  <img 
-                    src={project.imageUrl} 
-                    alt={project.title} 
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute bottom-4 left-4 z-20">
-                    <span className="inline-block px-3 py-1 bg-soul-primary text-white text-xs font-bold rounded-full mb-2">
-                      {project.category}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-soul-primary transition-colors">
-                    {project.title}
-                  </h3>
-                  
-                  <p className="text-slate-600 mb-6 flex-1 line-clamp-3">
-                    {language === 'en' ? project.shortDescription.en : project.shortDescription.es}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-xl">
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{t.ask}</p>
-                      <p className="font-bold text-slate-900">{project.fundingAsk}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{t.valuation}</p>
-                      <p className="font-bold text-slate-900">{project.valuation}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {project.tags.map(tag => (
-                      <span key={tag} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">
-                        #{tag}
+            {projects.map((project) => {
+              const shareUrls = getShareUrls(project);
+              return (
+                <div key={project.id} className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-100 flex flex-col">
+                  <div className="relative h-48 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+                    <img 
+                      src={project.imageUrl} 
+                      alt={project.title} 
+                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute bottom-4 left-4 z-20">
+                      <span className="inline-block px-3 py-1 bg-soul-primary text-white text-xs font-bold rounded-full mb-2">
+                        {project.category}
                       </span>
-                    ))}
+                    </div>
                   </div>
+                  
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-2xl font-bold text-slate-900 group-hover:text-soul-primary transition-colors flex-1">
+                        {project.title}
+                      </h3>
+                      <div className="flex gap-2 ml-2">
+                        <a 
+                          href={shareUrls.linkedin} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-slate-400 hover:text-[#0077b5] transition-colors p-1"
+                          title={`${t.share} on LinkedIn`}
+                        >
+                          <Linkedin size={18} />
+                        </a>
+                        <a 
+                          href={shareUrls.twitter} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-slate-400 hover:text-black transition-colors p-1"
+                          title={`${t.share} on X (Twitter)`}
+                        >
+                          <Twitter size={18} />
+                        </a>
+                      </div>
+                    </div>
+                    
+                    <p className="text-slate-600 mb-6 flex-1 line-clamp-3">
+                      {language === 'en' ? project.shortDescription.en : project.shortDescription.es}
+                    </p>
 
-                  <button 
-                    onClick={() => handleRequestAccess(project)}
-                    className="w-full py-3 px-4 bg-white border-2 border-soul-dark text-soul-dark font-bold rounded-lg hover:bg-soul-dark hover:text-white transition-all flex items-center justify-center gap-2 group/btn"
-                  >
-                    {t.learnMore}
-                    <ArrowRight size={18} className="transform group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
+                    <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-xl">
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{t.ask}</p>
+                        <p className="font-bold text-slate-900">{project.fundingAsk}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{t.valuation}</p>
+                        <p className="font-bold text-slate-900">{project.valuation}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {project.tags.map(tag => (
+                        <span key={tag} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <button 
+                      onClick={() => handleRequestAccess(project)}
+                      className="w-full py-3 px-4 bg-white border-2 border-soul-dark text-soul-dark font-bold rounded-lg hover:bg-soul-dark hover:text-white transition-all flex items-center justify-center gap-2 group/btn"
+                    >
+                      {t.learnMore}
+                      <ArrowRight size={18} className="transform group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
