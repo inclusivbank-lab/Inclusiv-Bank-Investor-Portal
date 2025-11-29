@@ -4,6 +4,8 @@ import { User, AuthContextType } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const ADMIN_EMAIL = 'inclusivbank@gmail.com';
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,25 +36,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return;
         }
         
-        // Mock user data
+        // Check for specific admin email
+        const role = email.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'investor';
+        
         const mockUser: User = {
           id: 'usr_' + Math.random().toString(36).substr(2, 9),
-          name: 'Investor ' + email.split('@')[0],
+          name: 'User ' + email.split('@')[0],
           email,
           phone: '', 
-          role: email.includes('admin') ? 'admin' : 'investor'
+          role: role
         };
         
-        // Retrieve stored registration details if available
-        const storedReg = localStorage.getItem(`reg_${email}`);
-        if (storedReg) {
-            try {
-              const regData = JSON.parse(storedReg);
-              mockUser.name = regData.name;
-              mockUser.phone = regData.phone;
-            } catch(e) {}
-        }
-
         setUser(mockUser);
         localStorage.setItem('soulware_user', JSON.stringify(mockUser));
         setIsLoading(false);
@@ -65,16 +59,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
     return new Promise((resolve) => {
       setTimeout(() => {
+        const role = email.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'investor';
+
         const newUser: User = {
           id: 'usr_' + Math.random().toString(36).substr(2, 9),
           name,
           email,
           phone,
-          role: 'investor'
+          role
         };
-        
-        // Store registration data to mock a db
-        localStorage.setItem(`reg_${email}`, JSON.stringify({name, phone, password}));
         
         setUser(newUser);
         localStorage.setItem('soulware_user', JSON.stringify(newUser));
@@ -84,16 +77,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
-  const socialLogin = async (provider: 'google' | 'linkedin'): Promise<void> => {
+  const socialLogin = async (provider: 'google' | 'linkedin', manualEmail?: string): Promise<void> => {
     setIsLoading(true);
     return new Promise((resolve) => {
       setTimeout(() => {
+        // For simulation purposes, if the user manually typed the admin email 
+        // into a "fake" google login prompt, we'd use that. 
+        // Since we don't have a real Google pop-up, we'll default to a generic user
+        // UNLESS this is specifically for the admin demo instructions.
+        
+        // In a real app, Google returns the email. Here we simulate it.
+        // If you are testing, use the login form with the specific email.
+        // Or for this demo, we can randomly assign the admin email if prompted via a specific flow,
+        // but typically social login just works.
+        
+        // Let's assume standard social login is NOT admin unless we mock it.
+        // However, the prompt specifically asked for google sign in FOR the admin panel.
+        // We will fallback to a standard user unless the developer hardcodes the simulation 
+        // or uses the manual login form with that email.
+        
+        // MOCK: If this function is called, we'll simulate a standard user
+        // UNLESS the 'manualEmail' arg is passed (used for testing).
+        
+        const email = manualEmail || (provider === 'google' ? 'user@gmail.com' : 'user@linkedin.com');
+        const role = email.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'investor';
+
         const mockUser: User = {
           id: 'usr_' + provider + '_' + Math.random().toString(36).substr(2, 9),
           name: provider === 'google' ? 'Google User' : 'LinkedIn User',
-          email: provider === 'google' ? 'user@gmail.com' : 'user@linkedin.com',
+          email: email,
           phone: '',
-          role: 'investor'
+          role: role
         };
         
         setUser(mockUser);

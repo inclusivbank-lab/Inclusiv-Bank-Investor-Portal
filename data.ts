@@ -8,8 +8,8 @@ export const projects: ProjectData[] = [
     category: 'Fintech / Social Impact',
     fundingAsk: '$10.5M Seed',
     valuation: '$105M Pre-money',
-    // Hands reaching in unity
-    imageUrl: 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=800&q=80',
+    pitchDeckUrl: '', 
     tags: ['Fintech', 'Impact Investing', 'Financial Inclusion'],
     shortDescription: {
       en: "A comprehensive ecosystem delivering financial dignity to LGBTQ+, seniors, and migrants with measurable social impact.",
@@ -30,8 +30,8 @@ export const projects: ProjectData[] = [
     category: 'Clean Energy / Biotech',
     fundingAsk: '$5M Seed',
     valuation: 'Undisclosed',
-    // Trees/Forest with light
-    imageUrl: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1501854140884-074bf6b24363?auto=format&fit=crop&w=800&q=80',
+    pitchDeckUrl: '',
     tags: ['Biotech', 'Clean Energy', 'Hardware'],
     shortDescription: {
       en: "The world's first non-invasive bio-electrical harvesting platform transforming trees into clean power stations.",
@@ -48,12 +48,12 @@ export const projects: ProjectData[] = [
   },
   {
     id: 'gchs',
-    title: 'GCHS™ (Global Career Homologation)',
+    title: 'GCHS™',
     category: 'EdTech / HR Tech',
     fundingAsk: '$10M Seed',
     valuation: 'Undisclosed',
-    // Global connections/Network
-    imageUrl: 'https://images.unsplash.com/photo-1529101091760-61df6be5d18b?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80',
+    pitchDeckUrl: '',
     tags: ['AI', 'Blockchain', 'Social Impact'],
     shortDescription: {
       en: "AI-driven career homologation making professional recognition borderless and verifiable.",
@@ -74,8 +74,8 @@ export const projects: ProjectData[] = [
     category: 'Web3 / Social Economy',
     fundingAsk: '$5M Pre-Seed',
     valuation: '$25M Cap',
-    // Time/Clock concept
     imageUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?auto=format&fit=crop&w=800&q=80',
+    pitchDeckUrl: '',
     tags: ['Crypto', 'Social Media', 'Human Economy'],
     shortDescription: {
       en: "A sovereign human economy where time is currency and kindness is status.",
@@ -96,8 +96,8 @@ export const projects: ProjectData[] = [
     category: 'Blockchain / Energy',
     fundingAsk: '$25M Series A',
     valuation: 'Undisclosed',
-    // Solar panels
     imageUrl: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80',
+    pitchDeckUrl: '',
     tags: ['Blockchain', 'ESG', 'Solar'],
     shortDescription: {
       en: "The first blockchain defined by the sun, using Proof-of-Solar™ consensus.",
@@ -118,8 +118,8 @@ export const projects: ProjectData[] = [
     category: 'Fintech / EdTech',
     fundingAsk: '$3.5M Series A',
     valuation: 'Undisclosed',
-    // Child saving money/Piggy bank
     imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80',
+    pitchDeckUrl: '',
     tags: ['Youth', 'Education', 'Fintech'],
     shortDescription: {
       en: "AI-powered, gamified digital wallet designed specifically for children ages 5-18.",
@@ -140,8 +140,8 @@ export const projects: ProjectData[] = [
     category: 'Fintech',
     fundingAsk: '$5M Series A',
     valuation: 'Undisclosed',
-    // Diverse community/Pride colors
     imageUrl: 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&w=800&q=80',
+    pitchDeckUrl: '',
     tags: ['LGBTQ+', 'Banking', 'Inclusion'],
     shortDescription: {
       en: "The digital wallet for the global LGBTQ+ community (Love, Unity, Care, Acceptance).",
@@ -162,8 +162,8 @@ export const projects: ProjectData[] = [
     category: 'Web3 / Conservation',
     fundingAsk: '£4M Seed',
     valuation: 'Undisclosed',
-    // Forest/Nature
-    imageUrl: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=800&q=80',
+    pitchDeckUrl: '',
     tags: ['NFT', 'Conservation', 'Climate'],
     shortDescription: {
       en: "Turning carbon offsets into digital proof of impact via living NFTs.",

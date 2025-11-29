@@ -8,7 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  language?: Language; // Kept for backwards compat, but unused in favor of context
+  language?: Language; 
 }
 
 const GoogleIcon = () => (
@@ -65,7 +65,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setError('');
     setLoading(true);
     try {
-      await socialLogin(provider);
+      // In a real app, the provider handles email entry. 
+      // For this demo, we check if the user typed the admin email in the form
+      // before clicking social login, to simulate admin auth.
+      let adminEmailOverride = undefined;
+      if (formData.email === 'inclusivbank@gmail.com') {
+        adminEmailOverride = 'inclusivbank@gmail.com';
+      }
+      
+      await socialLogin(provider, adminEmailOverride);
       onClose();
     } catch (err) {
       setError(`${provider} login failed.`);
@@ -195,6 +203,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             >
               {mode === 'login' ? t('auth.switchRegister') : t('auth.switchLogin')}
             </button>
+          </div>
+          
+          <div className="mt-4 p-2 bg-blue-50 dark:bg-blue-900/20 text-xs text-center text-blue-600 dark:text-blue-300 rounded border border-blue-100 dark:border-blue-800">
+            <strong>Admin Demo:</strong> Use <em>inclusivbank@gmail.com</em>
           </div>
         </div>
       </div>

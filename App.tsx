@@ -1,23 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
-import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, LogIn, LogOut, User as UserIcon, Linkedin, Twitter, Moon, Sun, ChevronDown } from 'lucide-react';
-import { projects } from './data';
+import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, LogIn, LogOut, User as UserIcon, Linkedin, Twitter, Moon, Sun, ChevronDown, Settings } from 'lucide-react';
 import GateModal from './components/GateModal';
 import AuthModal from './components/AuthModal';
 import ChatBot from './components/ChatBot';
 import ProjectCard from './components/ProjectCard';
+import AdminPanel from './components/AdminPanel';
 import { ProjectData } from './types';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { DataProvider, useData } from './context/DataContext';
 
 const NavBar = ({ 
   onLoginClick,
   isDark,
-  toggleTheme
+  toggleTheme,
+  onAdminClick
 }: { 
   onLoginClick: () => void;
   isDark: boolean;
   toggleTheme: () => void;
+  onAdminClick: () => void;
 }) => {
   const { user, logout } = useAuth();
   const { language, setLanguage, t, availableLanguages } = useLanguage();
@@ -84,6 +87,17 @@ const NavBar = ({
                   <span className="text-sm font-semibold text-slate-900 dark:text-white">{user.name}</span>
                   <span className="text-xs text-slate-500 dark:text-slate-400 uppercase">{user.role}</span>
                 </div>
+                
+                {user.role === 'admin' && (
+                  <button
+                    onClick={onAdminClick}
+                    className="p-2 text-soul-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                    title="Admin Panel"
+                  >
+                    <Settings size={20} />
+                  </button>
+                )}
+
                 <button 
                   onClick={logout}
                   className="p-2 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
@@ -112,6 +126,7 @@ const MainContent = () => {
   const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
   const [isGateOpen, setIsGateOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') === 'dark' ||
@@ -119,7 +134,9 @@ const MainContent = () => {
     }
     return false;
   });
+  
   const { user } = useAuth();
+  const { projects } = useData();
   const { t, language } = useLanguage();
 
   useEffect(() => {
@@ -136,7 +153,6 @@ const MainContent = () => {
 
   const handleRequestAccess = (project: ProjectData) => {
     if (!user) {
-      // If not logged in, force auth first
       setIsAuthOpen(true);
     } else {
       setSelectedProject(project);
@@ -150,6 +166,7 @@ const MainContent = () => {
         onLoginClick={() => setIsAuthOpen(true)}
         isDark={isDark}
         toggleTheme={toggleTheme}
+        onAdminClick={() => setIsAdminOpen(true)}
       />
 
       {/* Hero Section */}
@@ -250,6 +267,10 @@ const MainContent = () => {
         onClose={() => setIsAuthOpen(false)} 
       />
 
+      {isAdminOpen && (
+        <AdminPanel onClose={() => setIsAdminOpen(false)} />
+      )}
+
       <ChatBot />
     </div>
   );
@@ -259,7 +280,9 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <MainContent />
+        <DataProvider>
+          <MainContent />
+        </DataProvider>
       </AuthProvider>
     </LanguageProvider>
   );

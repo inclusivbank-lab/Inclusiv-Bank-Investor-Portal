@@ -10,7 +10,9 @@ export interface User {
 }
 
 export type LocalizedContent = {
-  [key in Language]: string;
+  [key in Language]?: string;
+} & {
+  en: string; // English is mandatory fallback
 };
 
 export interface ProjectData {
@@ -23,6 +25,7 @@ export interface ProjectData {
   category: string;
   tags: string[];
   imageUrl: string;
+  pitchDeckUrl?: string; // New field for uploaded files
 }
 
 export interface InvestorLead {
@@ -36,7 +39,7 @@ export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, phone: string, password: string) => Promise<void>;
-  socialLogin: (provider: 'google' | 'linkedin') => Promise<void>;
+  socialLogin: (provider: 'google' | 'linkedin', email?: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -46,4 +49,12 @@ export interface LanguageContextType {
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
   availableLanguages: { code: Language; label: string }[];
+}
+
+export interface DataContextType {
+  projects: ProjectData[];
+  updateProject: (id: string, data: Partial<ProjectData>) => void;
+  addProject: (data: ProjectData) => void;
+  deleteProject: (id: string) => void;
+  uploadPitchDeck: (id: string, file: File) => Promise<string>;
 }
