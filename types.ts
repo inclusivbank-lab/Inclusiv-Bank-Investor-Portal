@@ -1,5 +1,5 @@
 
-export type Language = 'en' | 'es';
+export type Language = 'en' | 'es' | 'fr' | 'de';
 
 export interface User {
   id: string;
@@ -9,17 +9,15 @@ export interface User {
   role: 'investor' | 'admin';
 }
 
+export type LocalizedContent = {
+  [key in Language]: string;
+};
+
 export interface ProjectData {
   id: string;
   title: string;
-  shortDescription: {
-    en: string;
-    es: string;
-  };
-  fullDescription: {
-    en: string;
-    es: string;
-  };
+  shortDescription: LocalizedContent;
+  fullDescription: LocalizedContent;
   fundingAsk: string;
   valuation?: string;
   category: string;
@@ -41,4 +39,11 @@ export interface AuthContextType {
   socialLogin: (provider: 'google' | 'linkedin') => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+}
+
+export interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+  availableLanguages: { code: Language; label: string }[];
 }

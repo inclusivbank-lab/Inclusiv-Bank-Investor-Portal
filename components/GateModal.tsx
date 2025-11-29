@@ -3,16 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { X, Download, Loader2 } from 'lucide-react';
 import { ProjectData, Language } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface GateModalProps {
   isOpen: boolean;
   onClose: () => void;
   project: ProjectData | null;
-  language: Language;
+  language?: Language; // kept for compat
 }
 
-const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project, language }) => {
+const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -35,10 +37,8 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project, languag
     e.preventDefault();
     setIsSubmitting(true);
     
-    // In a real app, this would send data to a backend
     console.log(`Lead Captured for ${project.id}:`, formData);
 
-    // Simulate API call and Download
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSuccess(true);
@@ -59,23 +59,12 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project, languag
     }, 1500);
   };
 
-  const t = {
-    title: language === 'en' ? 'Access Investor Documents' : 'Acceder a Documentos de Inversión',
-    subtitle: language === 'en' ? `Please confirm your details to download the pitch deck for ${project.title}.` : `Por favor confirme sus datos para descargar el pitch deck de ${project.title}.`,
-    name: language === 'en' ? 'Full Name' : 'Nombre Completo',
-    email: language === 'en' ? 'Email Address' : 'Correo Electrónico',
-    phone: language === 'en' ? 'Mobile Number' : 'Número de Móvil',
-    submit: language === 'en' ? 'Download Pitch Deck' : 'Descargar Pitch Deck',
-    success: language === 'en' ? 'Download Started!' : '¡Descarga Iniciada!',
-    privacy: language === 'en' ? 'Your information is secure and will only be used to contact you regarding this opportunity.' : 'Su información está segura y solo se utilizará para contactarlo sobre esta oportunidad.'
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in relative">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in relative border border-slate-100 dark:border-slate-800">
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
         >
           <X size={24} />
         </button>
@@ -85,44 +74,44 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project, languag
             <div className="w-12 h-12 bg-soul-primary/10 text-soul-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <Download size={24} />
             </div>
-            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">
-              {isSuccess ? t.success : t.title}
+            <h3 className="text-2xl font-serif font-bold text-slate-900 dark:text-white mb-2">
+              {isSuccess ? t('gate.success') : t('gate.title')}
             </h3>
-            <p className="text-slate-600 text-sm">
-              {isSuccess ? 'Check your downloads folder.' : t.subtitle}
+            <p className="text-slate-600 dark:text-slate-400 text-sm">
+              {isSuccess ? t('gate.checkFolder') : `${t('gate.subtitle')} ${project.title}.`}
             </p>
           </div>
 
           {!isSuccess ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">{t.name}</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('auth.name')}</label>
                 <input 
                   type="text" 
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 bg-white dark:bg-slate-800 dark:text-white"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   readOnly={!!user?.name}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">{t.email}</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('auth.email')}</label>
                 <input 
                   type="email" 
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 bg-white dark:bg-slate-800 dark:text-white"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   readOnly={!!user?.email}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">{t.phone}</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('auth.phone')}</label>
                 <input 
                   type="tel" 
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 bg-white dark:bg-slate-800 dark:text-white"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   readOnly={!!user?.phone}
@@ -139,18 +128,18 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project, languag
                 ) : (
                   <>
                     <Download size={20} />
-                    {t.submit}
+                    {t('gate.download')}
                   </>
                 )}
               </button>
               
               <p className="text-xs text-slate-400 text-center mt-4">
-                {t.privacy}
+                {t('gate.privacy')}
               </p>
             </form>
           ) : (
             <div className="flex flex-col items-center py-8">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-4">
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
