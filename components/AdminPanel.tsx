@@ -16,7 +16,7 @@ const AdminPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
         <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl max-w-md text-center">
           <h2 className="text-2xl font-bold text-red-500 mb-4">Access Denied</h2>
-          <p className="text-slate-600 dark:text-slate-300 mb-6">You must be logged in as <strong>inclusivbank@gmail.com</strong> to view this panel.</p>
+          <p className="text-slate-600 dark:text-slate-300 mb-6">You must be logged in as <strong>investors@inclusivbank.lat</strong> to view this panel.</p>
           <button onClick={onClose} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-lg">Close</button>
         </div>
       </div>

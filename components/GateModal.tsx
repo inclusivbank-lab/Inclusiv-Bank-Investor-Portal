@@ -44,6 +44,7 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -55,13 +56,22 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
     } else {
       setFormData({ name: '', email: '', phone: '' });
     }
+    setError('');
   }, [user, isOpen]);
 
   if (!isOpen || !project) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Strict validation for Email and Mobile as requested
+    if (!formData.email || !formData.phone) {
+      setError(language === 'es' ? 'El correo y el móvil son obligatorios.' : 'Email and Mobile number are required.');
+      return;
+    }
+
     setIsSubmitting(true);
+    setError('');
     
     // --- SEND DATA TO GOOGLE SHEETS ---
     try {
@@ -155,7 +165,7 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('auth.email')}</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('auth.email')} <span className="text-red-500">*</span></label>
                 <input 
                   type="email" 
                   required
@@ -166,7 +176,7 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('auth.phone')}</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('auth.phone')} <span className="text-red-500">*</span></label>
                 <input 
                   type="tel" 
                   required
@@ -176,6 +186,12 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
                   readOnly={!!user?.phone}
                 />
               </div>
+
+              {error && (
+                <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-2 rounded text-center">
+                  {error}
+                </p>
+              )}
 
               <button 
                 type="submit" 

@@ -40,7 +40,6 @@ export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, phone: string, password: string) => Promise<void>;
-  socialLogin: (provider: 'google' | 'linkedin', email?: string) => Promise<void>;
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
   isLoading: boolean;

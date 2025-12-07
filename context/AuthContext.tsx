@@ -4,7 +4,7 @@ import { User, AuthContextType } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_EMAIL = 'inclusivbank@gmail.com';
+const ADMIN_EMAIL = 'investors@inclusivbank.lat';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -36,20 +36,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Simulate API call
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        // Mock validation
-        if (password.length < 6) {
-          setIsLoading(false);
-          reject(new Error('Password must be at least 6 characters'));
-          return;
+        const normalizedEmail = email.toLowerCase().trim();
+        const isAdminEmail = normalizedEmail === ADMIN_EMAIL;
+
+        // Admin Security Check
+        if (isAdminEmail) {
+          if (password !== 'HernanJuan2026') {
+            setIsLoading(false);
+            reject(new Error('Invalid admin credentials.'));
+            return;
+          }
+        } else {
+          // Standard user validation
+          if (password.length < 6) {
+            setIsLoading(false);
+            reject(new Error('Password must be at least 6 characters'));
+            return;
+          }
         }
         
-        // Check for specific admin email
-        const role = email.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'investor';
+        const role = isAdminEmail ? 'admin' : 'investor';
         
         const mockUser: User = {
           id: 'usr_' + Math.random().toString(36).substr(2, 9),
-          name: 'User ' + email.split('@')[0],
-          email,
+          name: isAdminEmail ? 'Admin' : 'User ' + email.split('@')[0],
+          email: normalizedEmail,
           phone: '', 
           role: role,
           interestedProjectIds: []
@@ -65,14 +76,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const register = async (name: string, email: string, phone: string, password: string): Promise<void> => {
     setIsLoading(true);
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const role = email.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'investor';
+        const normalizedEmail = email.toLowerCase().trim();
+        
+        // Prevent registering as admin via standard signup
+        if (normalizedEmail === ADMIN_EMAIL) {
+          setIsLoading(false);
+          reject(new Error('This email is reserved. Please log in.'));
+          return;
+        }
+
+        const role = 'investor';
 
         const newUser: User = {
           id: 'usr_' + Math.random().toString(36).substr(2, 9),
           name,
-          email,
+          email: normalizedEmail,
           phone,
           role,
           interestedProjectIds: []
@@ -86,37 +106,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
-  const socialLogin = async (provider: 'google' | 'linkedin', manualEmail?: string): Promise<void> => {
-    setIsLoading(true);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const email = manualEmail || (provider === 'google' ? 'user@gmail.com' : 'user@linkedin.com');
-        const role = email.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'investor';
-
-        const mockUser: User = {
-          id: 'usr_' + provider + '_' + Math.random().toString(36).substr(2, 9),
-          name: provider === 'google' ? 'Google User' : 'LinkedIn User',
-          email: email,
-          phone: '',
-          role: role,
-          interestedProjectIds: []
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem('soulware_user', JSON.stringify(mockUser));
-        setIsLoading(false);
-        resolve();
-      }, 1000);
-    });
-  };
-
   const logout = () => {
     setUser(null);
     localStorage.removeItem('soulware_user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, socialLogin, logout, updateUser, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
