@@ -17,74 +17,80 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const fetchData = async () => {
       setIsLoading(true);
       
-      // 1. Fetch Projects
-      const { data: projectData, error: projectError } = await supabase
-        .from('projects')
-        .select('*');
-      
-      if (projectError) {
-        console.error('Error fetching projects:', projectError);
-        // Fallback to local data if DB is empty or error
-        if (projectData?.length === 0) setProjects(initialProjects);
-      } else {
-        // Map snake_case DB fields to camelCase TS interfaces if needed, 
-        // but currently we assume column names match or we map them here.
-        // Assuming DB columns: id, title, short_description, full_description, etc.
-        const mappedProjects: ProjectData[] = projectData.map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          shortDescription: p.short_description || {},
-          fullDescription: p.full_description || {},
-          fundingAsk: p.funding_ask,
-          valuation: p.valuation,
-          category: p.category,
-          tags: p.tags || [],
-          imageUrl: p.image_url,
-          pitchDeckUrl: p.pitch_deck_url
-        }));
+      // 1. Fetch Projects with Fallback
+      try {
+        const { data: projectData, error: projectError } = await supabase
+          .from('projects')
+          .select('*');
         
-        if (mappedProjects.length === 0) {
-          // If DB is empty, use initial data (and maybe upload it?)
+        if (projectError) {
+          console.warn('Supabase projects fetch error (using local data):', projectError);
+          setProjects(initialProjects);
+        } else if (!projectData || projectData.length === 0) {
           setProjects(initialProjects);
         } else {
+          // Map snake_case DB fields to camelCase TS interfaces
+          const mappedProjects: ProjectData[] = projectData.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            shortDescription: p.short_description || {},
+            fullDescription: p.full_description || {},
+            fundingAsk: p.funding_ask,
+            valuation: p.valuation,
+            category: p.category,
+            tags: p.tags || [],
+            imageUrl: p.image_url,
+            pitchDeckUrl: p.pitch_deck_url
+          }));
           setProjects(mappedProjects);
         }
+      } catch (err) {
+        console.warn('Supabase connection failed (using local data):', err);
+        setProjects(initialProjects);
       }
 
-      // 2. Fetch Leads (Admin only usually, but we fetch all for context simplicity)
-      const { data: leadsData } = await supabase
-        .from('leads')
-        .select('*')
-        .order('timestamp', { ascending: false });
-        
-      if (leadsData) {
-        const mappedLeads: InvestorLead[] = leadsData.map((l: any) => ({
-          id: l.id,
-          name: l.name,
-          email: l.email,
-          phone: l.phone,
-          projectTitle: l.project_title,
-          projectId: l.project_id,
-          timestamp: l.timestamp
-        }));
-        setLeads(mappedLeads);
+      // 2. Fetch Leads (Fail gracefully)
+      try {
+        const { data: leadsData, error: leadsError } = await supabase
+          .from('leads')
+          .select('*')
+          .order('timestamp', { ascending: false });
+          
+        if (!leadsError && leadsData) {
+          const mappedLeads: InvestorLead[] = leadsData.map((l: any) => ({
+            id: l.id,
+            name: l.name,
+            email: l.email,
+            phone: l.phone,
+            projectTitle: l.project_title,
+            projectId: l.project_id,
+            timestamp: l.timestamp
+          }));
+          setLeads(mappedLeads);
+        }
+      } catch (e) {
+        console.log("Leads fetch skipped or failed");
       }
 
-      // 3. Fetch Users (for Admin Panel)
-      const { data: usersData } = await supabase
-        .from('profiles')
-        .select('*');
-        
-      if (usersData) {
-        const mappedUsers: User[] = usersData.map((u: any) => ({
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          phone: u.phone,
-          role: u.role,
-          interestedProjectIds: u.interested_projects
-        }));
-        setUsers(mappedUsers);
+      // 3. Fetch Users (Fail gracefully)
+      try {
+        const { data: usersData, error: usersError } = await supabase
+          .from('profiles')
+          .select('*');
+          
+        if (!usersError && usersData) {
+          const mappedUsers: User[] = usersData.map((u: any) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            phone: u.phone,
+            role: u.role,
+            interestedProjectIds: u.interested_projects
+          }));
+          setUsers(mappedUsers);
+        }
+      } catch (e) {
+        console.log("Users fetch skipped or failed");
       }
 
       setIsLoading(false);
@@ -97,45 +103,57 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Optimistic Update
     setProjects(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
 
-    const dbUpdates: any = {};
-    if (data.title) dbUpdates.title = data.title;
-    if (data.fundingAsk) dbUpdates.funding_ask = data.fundingAsk;
-    if (data.valuation) dbUpdates.valuation = data.valuation;
-    if (data.category) dbUpdates.category = data.category;
-    if (data.pitchDeckUrl) dbUpdates.pitch_deck_url = data.pitchDeckUrl;
+    try {
+      const dbUpdates: any = {};
+      if (data.title) dbUpdates.title = data.title;
+      if (data.fundingAsk) dbUpdates.funding_ask = data.fundingAsk;
+      if (data.valuation) dbUpdates.valuation = data.valuation;
+      if (data.category) dbUpdates.category = data.category;
+      if (data.pitchDeckUrl) dbUpdates.pitch_deck_url = data.pitchDeckUrl;
 
-    const { error } = await supabase
-      .from('projects')
-      .update(dbUpdates)
-      .eq('id', id);
+      const { error } = await supabase
+        .from('projects')
+        .update(dbUpdates)
+        .eq('id', id);
 
-    if (error) console.error('Error updating project:', error);
+      if (error) console.error('Error updating project:', error);
+    } catch (e) {
+      console.error('Update failed:', e);
+    }
   };
 
   const addProject = async (data: ProjectData) => {
     setProjects(prev => [...prev, data]);
     
-    // Convert to DB format
-    const dbProject = {
-      id: data.id,
-      title: data.title,
-      short_description: data.shortDescription,
-      full_description: data.fullDescription,
-      funding_ask: data.fundingAsk,
-      valuation: data.valuation,
-      category: data.category,
-      tags: data.tags,
-      image_url: data.imageUrl,
-      pitch_deck_url: data.pitchDeckUrl
-    };
+    try {
+      // Convert to DB format
+      const dbProject = {
+        id: data.id,
+        title: data.title,
+        short_description: data.shortDescription,
+        full_description: data.fullDescription,
+        funding_ask: data.fundingAsk,
+        valuation: data.valuation,
+        category: data.category,
+        tags: data.tags,
+        image_url: data.imageUrl,
+        pitch_deck_url: data.pitchDeckUrl
+      };
 
-    const { error } = await supabase.from('projects').insert([dbProject]);
-    if (error) console.error('Error adding project:', error);
+      const { error } = await supabase.from('projects').insert([dbProject]);
+      if (error) console.error('Error adding project:', error);
+    } catch (e) {
+      console.error('Add project failed:', e);
+    }
   };
 
   const deleteProject = async (id: string) => {
     setProjects(prev => prev.filter(p => p.id !== id));
-    await supabase.from('projects').delete().eq('id', id);
+    try {
+      await supabase.from('projects').delete().eq('id', id);
+    } catch (e) {
+      console.error('Delete project failed:', e);
+    }
   };
 
   const uploadPitchDeck = async (id: string, file: File): Promise<string> => {
@@ -165,46 +183,57 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logLead = async (leadData: Omit<InvestorLead, 'id' | 'timestamp'>) => {
     const timestamp = new Date().toISOString();
     
-    // DB Insert
-    const { data, error } = await supabase
-      .from('leads')
-      .insert([{
-        name: leadData.name,
-        email: leadData.email,
-        phone: leadData.phone,
-        project_title: leadData.projectTitle,
-        project_id: leadData.projectId,
-        timestamp: timestamp
-      }])
-      .select()
-      .single();
+    try {
+      // DB Insert
+      const { data, error } = await supabase
+        .from('leads')
+        .insert([{
+          name: leadData.name,
+          email: leadData.email,
+          phone: leadData.phone,
+          project_title: leadData.projectTitle,
+          project_id: leadData.projectId,
+          timestamp: timestamp
+        }])
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error logging lead:', error);
-      return;
-    }
+      if (error) {
+        console.error('Error logging lead:', error);
+        // Still update local state for UI feedback
+        const mockLead: InvestorLead = { ...leadData, id: 'temp-' + Date.now(), timestamp };
+        setLeads(prev => [mockLead, ...prev]);
+        return;
+      }
 
-    if (data) {
-      const newLead: InvestorLead = {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        projectTitle: data.project_title,
-        projectId: data.project_id,
-        timestamp: data.timestamp
-      };
-      setLeads(prev => [newLead, ...prev]);
+      if (data) {
+        const newLead: InvestorLead = {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          projectTitle: data.project_title,
+          projectId: data.project_id,
+          timestamp: data.timestamp
+        };
+        setLeads(prev => [newLead, ...prev]);
+      }
+    } catch (e) {
+       console.error('Log lead failed:', e);
     }
   };
 
   const updateUserRole = async (userId: string, newRole: User['role']) => {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
     
-    await supabase
-      .from('profiles')
-      .update({ role: newRole })
-      .eq('id', userId);
+    try {
+      await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', userId);
+    } catch (e) {
+      console.error('Update role failed:', e);
+    }
   };
 
   return (
