@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useLanguage } from '../context/LanguageContext';
-import { PieChart, TrendingUp, Bell, ArrowRight, FileText, Calendar, Wallet } from 'lucide-react';
+import { PieChart, TrendingUp, Bell, ArrowRight, FileText, Calendar, Wallet, Mail } from 'lucide-react';
 import ProjectCard from './ProjectCard';
 
 const InvestorDashboard: React.FC<{ onExplore: () => void }> = ({ onExplore }) => {
@@ -139,31 +139,50 @@ const InvestorDashboard: React.FC<{ onExplore: () => void }> = ({ onExplore }) =
             )}
           </div>
 
-          {/* Sidebar: Notifications */}
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <Bell size={20} />
-              {t('dashboard.updates')}
-            </h2>
-            
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
-              <div className="space-y-6">
-                {notifications.map((note, idx) => (
-                  <div key={note.id} className="flex gap-4 pb-6 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
-                    <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${note.type === 'update' ? 'bg-green-500' : note.type === 'event' ? 'bg-purple-500' : 'bg-blue-500'}`} />
-                    <div>
-                      <p className="text-sm font-medium text-slate-900 dark:text-white mb-1">{note.text}</p>
-                      <p className="text-xs text-slate-400 flex items-center gap-1">
-                        <Calendar size={12} />
-                        {note.date}
-                      </p>
+          {/* Sidebar: Notifications & Contact */}
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                <Bell size={20} />
+                {t('dashboard.updates')}
+              </h2>
+              
+              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
+                <div className="space-y-6">
+                  {notifications.map((note, idx) => (
+                    <div key={note.id} className="flex gap-4 pb-6 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
+                      <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${note.type === 'update' ? 'bg-green-500' : note.type === 'event' ? 'bg-purple-500' : 'bg-blue-500'}`} />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900 dark:text-white mb-1">{note.text}</p>
+                        <p className="text-xs text-slate-400 flex items-center gap-1">
+                          <Calendar size={12} />
+                          {note.date}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <button className="w-full mt-6 py-2 text-sm text-slate-500 hover:text-soul-primary transition-colors border-t border-slate-100 dark:border-slate-800 pt-4">
+                  View all notifications
+                </button>
               </div>
-              <button className="w-full mt-6 py-2 text-sm text-slate-500 hover:text-soul-primary transition-colors border-t border-slate-100 dark:border-slate-800 pt-4">
-                View all notifications
-              </button>
+            </div>
+
+            {/* Contact Card */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800 p-6">
+              <h3 className="font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                <Mail size={20} className="text-soul-primary" />
+                {t('section.contact')}
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                Have questions about your portfolio? Our investor relations team is here to help.
+              </p>
+              <a 
+                href="mailto:investors@inclusivbank.lat" 
+                className="flex items-center justify-center gap-2 w-full py-3 bg-white dark:bg-slate-800 text-soul-primary font-semibold rounded-xl shadow-sm hover:shadow-md transition-all text-sm group"
+              >
+                <span className="group-hover:underline">investors@inclusivbank.lat</span>
+              </a>
             </div>
           </div>
         </div>
