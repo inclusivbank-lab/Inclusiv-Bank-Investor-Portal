@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, LogIn, LogOut, User as UserIcon, Linkedin, Twitter, Moon, Sun, ChevronDown, Settings, LayoutDashboard, Search, Filter } from 'lucide-react';
+import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, LogIn, LogOut, User as UserIcon, Linkedin, Twitter, Moon, Sun, ChevronDown, Settings, LayoutDashboard } from 'lucide-react';
 import GateModal from './components/GateModal';
 import AuthModal from './components/AuthModal';
 import ChatBot from './components/ChatBot';
@@ -140,10 +141,6 @@ const MainContent = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [view, setView] = useState<'home' | 'dashboard'>('home');
   
-  // Search & Filter State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState('All');
-  
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') === 'dark' ||
@@ -154,7 +151,7 @@ const MainContent = () => {
   
   const { user } = useAuth();
   const { projects } = useData();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (isDark) {
@@ -183,23 +180,6 @@ const MainContent = () => {
       setIsGateOpen(true);
     }
   };
-
-  // Filter Logic
-  const categories = ['All', 'Fintech', 'Impact', 'Energy', 'Education', 'Web3'];
-  
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = 
-      project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.shortDescription['en'].toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-    const matchesCategory = 
-      filterCategory === 'All' || 
-      project.category.toLowerCase().includes(filterCategory.toLowerCase()) ||
-      project.tags.some(tag => tag.toLowerCase().includes(filterCategory.toLowerCase()));
-      
-    return matchesSearch && matchesCategory;
-  });
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-soul-dark font-sans pb-20 transition-colors duration-300">
@@ -249,52 +229,19 @@ const MainContent = () => {
             </div>
           </section>
 
-          {/* Search and Filters */}
-          <section className="sticky top-24 z-30 bg-slate-50/95 dark:bg-soul-dark/95 backdrop-blur-sm py-4 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="relative w-full md:w-96">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                  type="text" 
-                  placeholder={language === 'es' ? "Buscar proyectos..." : "Search projects..."}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all"
-                />
-              </div>
-              <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setFilterCategory(cat)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                      filterCategory === cat 
-                        ? 'bg-soul-primary text-white' 
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
           {/* Projects Grid */}
           <section className="py-12 bg-slate-50 dark:bg-soul-dark transition-colors duration-300" id="projects">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-end justify-between mb-8">
                 <h2 className="font-serif text-3xl font-bold text-slate-900 dark:text-white">
-                  {filteredProjects.length === projects.length 
-                    ? t('section.opportunities') 
-                    : `${filteredProjects.length} ${language === 'es' ? 'Resultados' : 'Results Found'}`}
+                  {t('section.opportunities')}
                 </h2>
                 <div className="h-1 w-24 bg-soul-primary hidden sm:block"></div>
               </div>
 
-              {filteredProjects.length > 0 ? (
+              {projects.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
-                  {filteredProjects.map((project) => (
+                  {projects.map((project) => (
                     <ProjectCard 
                       key={project.id} 
                       project={project} 
@@ -304,17 +251,8 @@ const MainContent = () => {
                 </div>
               ) : (
                 <div className="text-center py-20">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mb-4 text-slate-400">
-                    <Filter size={32} />
-                  </div>
-                  <h3 className="text-xl font-medium text-slate-900 dark:text-white mb-2">No projects found</h3>
-                  <p className="text-slate-500 dark:text-slate-400">Try adjusting your search or filters.</p>
-                  <button 
-                    onClick={() => {setSearchQuery(''); setFilterCategory('All');}}
-                    className="mt-6 text-soul-primary hover:underline"
-                  >
-                    Clear all filters
-                  </button>
+                  <h3 className="text-xl font-medium text-slate-900 dark:text-white mb-2">No projects available</h3>
+                  <p className="text-slate-500 dark:text-slate-400">Please check back later.</p>
                 </div>
               )}
             </div>
