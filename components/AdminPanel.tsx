@@ -2,17 +2,17 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
-import { Save, Upload, Plus, Trash2, X, FileText, CheckCircle, Users, LayoutList } from 'lucide-react';
-import { ProjectData } from '../types';
+import { Save, Upload, Trash2, X, CheckCircle, Users, LayoutList, Shield, User as UserIcon, Lock } from 'lucide-react';
+import { User } from '../types';
 
 const AdminPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { projects, leads, updateProject, addProject, deleteProject, uploadPitchDeck } = useData();
-  const { user } = useAuth();
+  const { projects, leads, users, updateProject, uploadPitchDeck, updateUserRole } = useData();
+  const { user: currentUser } = useAuth();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'projects' | 'leads'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'leads' | 'users'>('projects');
 
-  if (user?.role !== 'admin') {
+  if (currentUser?.role !== 'admin') {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
         <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl max-w-md text-center">
@@ -48,9 +48,19 @@ const AdminPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       fundingAsk: formData.get('fundingAsk') as string,
       valuation: formData.get('valuation') as string,
       category: formData.get('category') as string,
-      // Note: For full implementation, we'd handle nested descriptions here too
     });
     setEditingId(null);
+  };
+
+  const getRoleBadge = (role: User['role']) => {
+    switch (role) {
+      case 'admin':
+        return <span className="px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded text-xs font-bold flex items-center gap-1 w-fit"><Shield size={12}/> Admin</span>;
+      case 'investor':
+        return <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded text-xs font-bold flex items-center gap-1 w-fit"><UserIcon size={12}/> Investor</span>;
+      default:
+        return <span className="px-2 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 rounded text-xs font-bold flex items-center gap-1 w-fit"><Lock size={12}/> Limited</span>;
+    }
   };
 
   return (
@@ -59,7 +69,7 @@ const AdminPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-serif font-bold text-slate-900 dark:text-white">Admin Dashboard</h1>
-            <p className="text-slate-500 dark:text-slate-400">Manage pitch decks, project data, and investor leads</p>
+            <p className="text-slate-500 dark:text-slate-400">Manage pitch decks, project data, and user permissions</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
             <X size={24} className="text-slate-900 dark:text-white" />
@@ -67,7 +77,7 @@ const AdminPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-4 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6">
           <button 
             onClick={() => setActiveTab('projects')}
             className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${activeTab === 'projects' ? 'bg-soul-primary text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
@@ -78,12 +88,18 @@ const AdminPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             onClick={() => setActiveTab('leads')}
             className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${activeTab === 'leads' ? 'bg-soul-primary text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
           >
-            <Users size={18} /> Investor Leads
+            <Users size={18} /> Leads
+          </button>
+          <button 
+            onClick={() => setActiveTab('users')}
+            className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${activeTab === 'users' ? 'bg-soul-primary text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+          >
+            <Shield size={18} /> User Management
           </button>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-          {activeTab === 'projects' ? (
+          {activeTab === 'projects' && (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -167,8 +183,9 @@ const AdminPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </tbody>
               </table>
             </div>
-          ) : (
-            /* LEADS TAB CONTENT */
+          )}
+
+          {activeTab === 'leads' && (
             <div className="overflow-x-auto">
               {leads.length > 0 ? (
                 <table className="w-full text-left border-collapse">
@@ -213,6 +230,42 @@ const AdminPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   <p>Investors who download pitch decks will appear here.</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'users' && (
+            <div className="overflow-x-auto">
+               <table className="w-full text-left border-collapse">
+                 <thead>
+                   <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+                     <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">Name</th>
+                     <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">Email</th>
+                     <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">Current Role</th>
+                     <th className="p-4 font-semibold text-slate-700 dark:text-slate-300 text-right">Permission</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                    {users.map((u) => (
+                      <tr key={u.id} className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <td className="p-4 font-medium text-slate-900 dark:text-white">{u.name}</td>
+                        <td className="p-4 text-slate-600 dark:text-slate-400">{u.email}</td>
+                        <td className="p-4">{getRoleBadge(u.role)}</td>
+                        <td className="p-4 text-right">
+                          <select
+                            value={u.role}
+                            onChange={(e) => updateUserRole(u.id, e.target.value as User['role'])}
+                            disabled={u.email === 'investors@inclusivbank.lat'} // Prevent lockout of main admin
+                            className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-soul-primary outline-none"
+                          >
+                            <option value="limited">Limited</option>
+                            <option value="investor">Investor</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                 </tbody>
+               </table>
             </div>
           )}
         </div>

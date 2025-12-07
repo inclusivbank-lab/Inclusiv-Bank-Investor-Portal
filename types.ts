@@ -6,7 +6,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  role: 'investor' | 'admin';
+  role: 'investor' | 'admin' | 'limited';
   interestedProjectIds?: string[];
 }
 
@@ -58,9 +58,11 @@ export interface LanguageContextType {
 export interface DataContextType {
   projects: ProjectData[];
   leads: InvestorLead[];
+  users: User[]; // Simulated user database for admin
   updateProject: (id: string, data: Partial<ProjectData>) => void;
   addProject: (data: ProjectData) => void;
   deleteProject: (id: string) => void;
   uploadPitchDeck: (id: string, file: File) => Promise<string>;
   logLead: (lead: Omit<InvestorLead, 'id' | 'timestamp'>) => void;
+  updateUserRole: (userId: string, newRole: User['role']) => void;
 }

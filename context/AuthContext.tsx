@@ -87,7 +87,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return;
         }
 
-        const role = 'investor';
+        // New users start as 'limited' until vetted
+        const role = 'limited';
 
         const newUser: User = {
           id: 'usr_' + Math.random().toString(36).substr(2, 9),

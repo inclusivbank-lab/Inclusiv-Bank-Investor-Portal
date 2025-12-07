@@ -40,11 +40,15 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // Gate Modal
     'gate.title': 'Access Investor Documents',
+    'gate.restrictedTitle': 'Access Restricted',
     'gate.subtitle': 'Please confirm your details to download the pitch deck for',
+    'gate.restrictedDesc': 'You do not have permission to download investor documents yet.',
     'gate.download': 'Download Pitch Deck',
     'gate.success': 'Download Started!',
     'gate.checkFolder': 'Check your downloads folder.',
     'gate.privacy': 'Your information is secure and will only be used to contact you regarding this opportunity.',
+    'gate.accountLimited': 'Your account is currently Limited.',
+    'gate.contactAdmin': 'To access confidential pitch decks, please contact the administrator to upgrade your account to Investor status.',
 
     // Dashboard
     'dashboard.welcome': 'Welcome back',
@@ -94,11 +98,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.or': 'O continuar con',
     
     'gate.title': 'Acceder a Documentos',
+    'gate.restrictedTitle': 'Acceso Restringido',
     'gate.subtitle': 'Por favor confirme sus datos para descargar el pitch deck de',
+    'gate.restrictedDesc': 'Aún no tiene permiso para descargar documentos de inversores.',
     'gate.download': 'Descargar Pitch Deck',
     'gate.success': '¡Descarga Iniciada!',
     'gate.checkFolder': 'Revise su carpeta de descargas.',
     'gate.privacy': 'Su información está segura y solo se utilizará para contactarlo sobre esta oportunidad.',
+    'gate.accountLimited': 'Su cuenta está actualmente Limitada.',
+    'gate.contactAdmin': 'Para acceder a pitch decks confidenciales, contacte al administrador para actualizar su cuenta a estado de Inversor.',
 
     'dashboard.welcome': 'Bienvenido de nuevo',
     'dashboard.subtitle': 'Aquí tiene un resumen de sus intereses de inversión y actualizaciones del ecosistema.',
@@ -147,11 +155,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.or': 'Ou continuer avec',
     
     'gate.title': 'Accéder aux documents',
+    'gate.restrictedTitle': 'Accès Restreint',
     'gate.subtitle': 'Veuillez confirmer vos coordonnées pour télécharger le pitch deck de',
+    'gate.restrictedDesc': 'Vous n\'avez pas encore la permission de télécharger des documents.',
     'gate.download': 'Télécharger le Deck',
     'gate.success': 'Téléchargement lancé !',
     'gate.checkFolder': 'Vérifiez votre dossier de téléchargements.',
     'gate.privacy': 'Vos informations sont sécurisées et ne seront utilisées que pour vous contacter concernant cette opportunité.',
+    'gate.accountLimited': 'Votre compte est actuellement Limité.',
+    'gate.contactAdmin': 'Pour accéder aux documents confidentiels, veuillez contacter l\'administrateur pour passer au statut Investisseur.',
 
     'dashboard.welcome': 'Bon retour',
     'dashboard.subtitle': 'Voici un aperçu de vos intérêts d\'investissement et des mises à jour de l\'écosystème.',
@@ -200,11 +212,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.or': 'Oder weiter mit',
     
     'gate.title': 'Zugang zu Dokumenten',
+    'gate.restrictedTitle': 'Zugang eingeschränkt',
     'gate.subtitle': 'Bitte bestätigen Sie Ihre Daten, um das Pitch Deck herunterzuladen für',
+    'gate.restrictedDesc': 'Sie haben noch keine Berechtigung, Investorendokumente herunterzuladen.',
     'gate.download': 'Pitch Deck herunterladen',
     'gate.success': 'Download gestartet!',
     'gate.checkFolder': 'Prüfen Sie Ihren Download-Ordner.',
     'gate.privacy': 'Ihre Informationen sind sicher und werden nur verwendet, um Sie bezüglich dieser Gelegenheit zu kontaktieren.',
+    'gate.accountLimited': 'Ihr Konto ist derzeit eingeschränkt.',
+    'gate.contactAdmin': 'Um auf vertrauliche Dokumente zuzugreifen, kontaktieren Sie bitte den Administrator für ein Upgrade.',
 
     'dashboard.welcome': 'Willkommen zurück',
     'dashboard.subtitle': 'Hier ist ein Überblick über Ihre Investitionsinteressen und Updates.',
