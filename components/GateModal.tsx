@@ -4,6 +4,7 @@ import { X, Download, Loader2 } from 'lucide-react';
 import { ProjectData, Language } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useData } from '../context/DataContext';
 
 interface GateModalProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ const GOOGLE_SHEETS_WEBHOOK_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
 const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
   const { user, updateUser } = useAuth();
   const { t, language } = useLanguage();
+  const { logLead } = useData();
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -97,6 +99,16 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
     }
     // ----------------------------------
 
+    // --- LOG LEAD INTERNALLY ---
+    logLead({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      projectTitle: project.title,
+      projectId: project.id
+    });
+    // ---------------------------
+
     // --- UPDATE LOCAL USER INTEREST ---
     if (user) {
       const currentInterests = user.interestedProjectIds || [];
@@ -112,14 +124,26 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
       setIsSubmitting(false);
       setIsSuccess(true);
       
-      const element = document.createElement("a");
-      const fileContent = `Thank you for your interest in ${project.title}.\n\nThis is a placeholder for the pitch deck PDF.\n\nProject: ${project.title}\nCategory: ${project.category}\nFunding Ask: ${project.fundingAsk}\n\nLead Info:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}`;
-      const file = new Blob([fileContent], {type: 'text/plain'});
-      element.href = URL.createObjectURL(file);
-      element.download = `${project.id}_pitch_deck.txt`;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
+      // DOWNLOAD LOGIC
+      if (project.pitchDeckUrl) {
+        // Download actual uploaded file (Data URI)
+        const link = document.createElement("a");
+        link.href = project.pitchDeckUrl;
+        link.download = `${project.id}_pitch_deck.pdf`; // Defaulting to PDF extension for download name
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // Fallback to text file
+        const element = document.createElement("a");
+        const fileContent = `Thank you for your interest in ${project.title}.\n\nThis is a placeholder for the pitch deck PDF because the admin has not uploaded a file yet.\n\nProject: ${project.title}\nCategory: ${project.category}\nFunding Ask: ${project.fundingAsk}\n\nLead Info:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}`;
+        const file = new Blob([fileContent], {type: 'text/plain'});
+        element.href = URL.createObjectURL(file);
+        element.download = `${project.id}_info_sheet.txt`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
       
       setTimeout(() => {
         onClose();

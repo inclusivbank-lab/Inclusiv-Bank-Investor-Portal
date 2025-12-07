@@ -30,10 +30,13 @@ export interface ProjectData {
 }
 
 export interface InvestorLead {
+  id: string;
   name: string;
   email: string;
   phone: string;
-  projectInterest: string;
+  projectTitle: string;
+  projectId: string;
+  timestamp: string;
 }
 
 export interface AuthContextType {
@@ -54,8 +57,10 @@ export interface LanguageContextType {
 
 export interface DataContextType {
   projects: ProjectData[];
+  leads: InvestorLead[];
   updateProject: (id: string, data: Partial<ProjectData>) => void;
   addProject: (data: ProjectData) => void;
   deleteProject: (id: string) => void;
   uploadPitchDeck: (id: string, file: File) => Promise<string>;
+  logLead: (lead: Omit<InvestorLead, 'id' | 'timestamp'>) => void;
 }

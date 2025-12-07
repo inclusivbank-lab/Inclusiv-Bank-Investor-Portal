@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ProjectData, DataContextType } from '../types';
+import { ProjectData, DataContextType, InvestorLead } from '../types';
 import { projects as initialProjects } from '../data';
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -11,9 +11,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return saved ? JSON.parse(saved) : initialProjects;
   });
 
+  const [leads, setLeads] = useState<InvestorLead[]>(() => {
+    const saved = localStorage.getItem('soulware_leads');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   useEffect(() => {
     localStorage.setItem('soulware_projects', JSON.stringify(projects));
   }, [projects]);
+
+  useEffect(() => {
+    localStorage.setItem('soulware_leads', JSON.stringify(leads));
+  }, [leads]);
 
   const updateProject = (id: string, data: Partial<ProjectData>) => {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
@@ -46,8 +55,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
+  const logLead = (leadData: Omit<InvestorLead, 'id' | 'timestamp'>) => {
+    const newLead: InvestorLead = {
+      ...leadData,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString()
+    };
+    setLeads(prev => [newLead, ...prev]);
+  };
+
   return (
-    <DataContext.Provider value={{ projects, updateProject, addProject, deleteProject, uploadPitchDeck }}>
+    <DataContext.Provider value={{ projects, leads, updateProject, addProject, deleteProject, uploadPitchDeck, logLead }}>
       {children}
     </DataContext.Provider>
   );
