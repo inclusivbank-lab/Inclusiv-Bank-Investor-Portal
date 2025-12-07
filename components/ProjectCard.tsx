@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
-import { ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, Download, X, Loader2, Linkedin, Twitter, Moon, Sun, Image as ImageIcon, Zap } from 'lucide-react';
+import { ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, Download, X, Loader2, Linkedin, Twitter, Moon, Sun, Image as ImageIcon, Zap, Check } from 'lucide-react';
 import { ProjectData, Language } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { GoogleGenAI } from "@google/genai";
 
 interface ProjectCardProps {
@@ -12,10 +12,12 @@ interface ProjectCardProps {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) => {
   const { t, language } = useLanguage();
-  // Initialize error state if URL is missing to immediately show fallback
+  const { user } = useAuth();
   const [imgError, setImgError] = useState(!project.imageUrl);
   const [insightLoading, setInsightLoading] = useState(false);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
+
+  const isInterested = user?.interestedProjectIds?.includes(project.id);
 
   const getShareUrls = () => {
     const baseUrl = window.location.origin;
@@ -72,7 +74,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) =
   };
 
   return (
-    <div className="group bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl dark:shadow-slate-900/50 transition-all duration-300 overflow-hidden border border-slate-100 dark:border-slate-800 flex flex-col h-full">
+    <div className={`group bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl dark:shadow-slate-900/50 transition-all duration-300 overflow-hidden border ${isInterested ? 'border-soul-primary dark:border-soul-primary ring-1 ring-soul-primary' : 'border-slate-100 dark:border-slate-800'} flex flex-col h-full`}>
       <div className="relative h-48 overflow-hidden bg-slate-100 dark:bg-slate-800">
         {!imgError ? (
           <>
@@ -96,6 +98,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) =
             {project.category}
           </span>
         </div>
+        {isInterested && (
+          <div className="absolute top-4 right-4 z-20">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-md shadow-lg">
+              <Check size={12} /> Access Granted
+            </span>
+          </div>
+        )}
       </div>
       
       <div className="p-6 flex-1 flex flex-col">
@@ -177,9 +186,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) =
 
         <button 
           onClick={() => onRequestAccess(project)}
-          className="w-full py-3 px-4 bg-white dark:bg-slate-800 border-2 border-soul-dark dark:border-white text-soul-dark dark:text-white font-bold rounded-lg hover:bg-soul-dark dark:hover:bg-white hover:text-white dark:hover:text-soul-dark transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-sm hover:shadow-md mt-auto"
+          className={`w-full py-3 px-4 border-2 font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-sm hover:shadow-md mt-auto ${
+            isInterested 
+            ? 'bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30' 
+            : 'bg-white dark:bg-slate-800 border-soul-dark dark:border-white text-soul-dark dark:text-white hover:bg-soul-dark dark:hover:bg-white hover:text-white dark:hover:text-soul-dark'
+          }`}
         >
-          {t('btn.learnMore')}
+          {isInterested ? (language === 'es' ? 'Ver de nuevo' : 'View Again') : t('btn.learnMore')}
           <ArrowRight size={18} className="transform group-hover/btn:translate-x-1 transition-transform" />
         </button>
       </div>
