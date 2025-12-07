@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, LogIn, LogOut, User as UserIcon, Linkedin, Twitter, Moon, Sun, ChevronDown, Settings, LayoutDashboard } from 'lucide-react';
 import GateModal from './components/GateModal';
@@ -7,6 +6,7 @@ import ChatBot from './components/ChatBot';
 import ProjectCard from './components/ProjectCard';
 import AdminPanel from './components/AdminPanel';
 import InvestorDashboard from './components/InvestorDashboard';
+import InvestPage from './components/InvestPage';
 import { ProjectData } from './types';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
@@ -18,7 +18,8 @@ const NavBar = ({
   toggleTheme,
   onAdminClick,
   onDashboardClick,
-  onHomeClick
+  onHomeClick,
+  onInvestClick
 }: { 
   onLoginClick: () => void;
   isDark: boolean;
@@ -26,6 +27,7 @@ const NavBar = ({
   onAdminClick: () => void;
   onDashboardClick: () => void;
   onHomeClick: () => void;
+  onInvestClick: () => void;
 }) => {
   const { user, logout } = useAuth();
   const { language, setLanguage, t, availableLanguages } = useLanguage();
@@ -48,6 +50,23 @@ const NavBar = ({
               }}
             />
           </div>
+          
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center gap-6">
+            <button
+              onClick={onHomeClick}
+              className="text-slate-600 dark:text-slate-300 hover:text-soul-primary dark:hover:text-soul-primary font-medium text-sm transition-colors"
+            >
+              Home
+            </button>
+            <button
+              onClick={onInvestClick}
+              className="text-slate-600 dark:text-slate-300 hover:text-soul-primary dark:hover:text-soul-primary font-medium text-sm transition-colors"
+            >
+              Invest
+            </button>
+          </div>
+
           <div className="flex items-center gap-4">
             <button
               onClick={toggleTheme}
@@ -139,7 +158,7 @@ const MainContent = () => {
   const [isGateOpen, setIsGateOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [view, setView] = useState<'home' | 'dashboard'>('home');
+  const [view, setView] = useState<'home' | 'dashboard' | 'invest'>('home');
   
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -190,9 +209,12 @@ const MainContent = () => {
         onAdminClick={() => setIsAdminOpen(true)}
         onDashboardClick={() => setView('dashboard')}
         onHomeClick={() => setView('home')}
+        onInvestClick={() => setView('invest')}
       />
 
-      {view === 'dashboard' ? (
+      {view === 'invest' ? (
+        <InvestPage />
+      ) : view === 'dashboard' ? (
         <InvestorDashboard onExplore={() => setView('home')} />
       ) : (
         <>
@@ -268,13 +290,13 @@ const MainContent = () => {
               <p className="text-slate-600 dark:text-slate-300 text-lg mb-8">
                 {t('section.contactDesc')}
               </p>
-              <a 
-                href="mailto:investors@inclusivbank.lat"
+              <button 
+                onClick={() => setView('invest')}
                 className="inline-flex items-center gap-2 bg-soul-primary hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                {t('btn.contact')}
+                Express Your Interest
                 <ArrowRight size={20} />
-              </a>
+              </button>
             </div>
           </section>
         </>
