@@ -55,73 +55,79 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
     setIsSubmitting(true);
     setError('');
     
-    // --- SEND DATA TO GOOGLE SHEETS ---
     try {
-      const payload = new FormData();
-      payload.append('timestamp', new Date().toISOString());
-      payload.append('name', formData.name);
-      payload.append('email', formData.email);
-      payload.append('phone', formData.phone);
-      payload.append('project_title', project.title);
-      payload.append('project_id', project.id);
-      payload.append('funding_ask', project.fundingAsk);
+        // --- SEND DATA TO GOOGLE SHEETS (Legacy/Notification) ---
+        const payload = new FormData();
+        payload.append('timestamp', new Date().toISOString());
+        payload.append('name', formData.name);
+        payload.append('email', formData.email);
+        payload.append('phone', formData.phone);
+        payload.append('project_title', project.title);
+        payload.append('project_id', project.id);
+        payload.append('funding_ask', project.fundingAsk);
 
-      if (GOOGLE_SHEETS_WEBHOOK_URL && !GOOGLE_SHEETS_WEBHOOK_URL.includes('YOUR_GOOGLE_APPS_SCRIPT')) {
-        await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          body: payload
+        if (GOOGLE_SHEETS_WEBHOOK_URL && !GOOGLE_SHEETS_WEBHOOK_URL.includes('YOUR_GOOGLE_APPS_SCRIPT')) {
+            // Fire and forget
+            fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: payload
+            }).catch(e => console.error("Sheet error", e));
+        }
+
+        // --- LOG LEAD INTERNALLY (SUPABASE) ---
+        await logLead({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            projectTitle: project.title,
+            projectId: project.id
         });
-      }
+
+        // --- UPDATE USER INTEREST ---
+        if (user) {
+            const currentInterests = user.interestedProjectIds || [];
+            if (!currentInterests.includes(project.id)) {
+                await updateUser({ interestedProjectIds: [...currentInterests, project.id] });
+            }
+        }
+
+        setIsSubmitting(false);
+        setIsSuccess(true);
+        
+        // DOWNLOAD LOGIC
+        setTimeout(() => {
+            if (project.pitchDeckUrl) {
+                const link = document.createElement("a");
+                link.href = project.pitchDeckUrl;
+                // Supabase storage URLs are public, but adding download attribute helps
+                link.setAttribute("download", `${project.id}_pitch_deck.pdf`);
+                link.setAttribute("target", "_blank");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                const element = document.createElement("a");
+                const fileContent = `Thank you for your interest in ${project.title}.\n\nThis is a placeholder for the pitch deck PDF because the admin has not uploaded a file yet.\n\nProject: ${project.title}\nCategory: ${project.category}\nFunding Ask: ${project.fundingAsk}\n\nLead Info:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}`;
+                const file = new Blob([fileContent], {type: 'text/plain'});
+                element.href = URL.createObjectURL(file);
+                element.download = `${project.id}_info_sheet.txt`;
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+            }
+            
+            setTimeout(() => {
+                onClose();
+                setIsSuccess(false);
+            }, 2000);
+        }, 1000);
+
     } catch (err) {
-      console.error('Failed to log data to sheets:', err);
+        console.error("Submission failed", err);
+        setError("An error occurred. Please try again.");
+        setIsSubmitting(false);
     }
-
-    // --- LOG LEAD INTERNALLY ---
-    logLead({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      projectTitle: project.title,
-      projectId: project.id
-    });
-
-    // --- UPDATE LOCAL USER INTEREST ---
-    if (user) {
-      const currentInterests = user.interestedProjectIds || [];
-      if (!currentInterests.includes(project.id)) {
-        updateUser({ interestedProjectIds: [...currentInterests, project.id] });
-      }
-    }
-
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      
-      // DOWNLOAD LOGIC
-      if (project.pitchDeckUrl) {
-        const link = document.createElement("a");
-        link.href = project.pitchDeckUrl;
-        link.download = `${project.id}_pitch_deck.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        const element = document.createElement("a");
-        const fileContent = `Thank you for your interest in ${project.title}.\n\nThis is a placeholder for the pitch deck PDF because the admin has not uploaded a file yet.\n\nProject: ${project.title}\nCategory: ${project.category}\nFunding Ask: ${project.fundingAsk}\n\nLead Info:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}`;
-        const file = new Blob([fileContent], {type: 'text/plain'});
-        element.href = URL.createObjectURL(file);
-        element.download = `${project.id}_info_sheet.txt`;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-      }
-      
-      setTimeout(() => {
-        onClose();
-        setIsSuccess(false);
-      }, 2000);
-    }, 1500);
   };
 
   return (

@@ -43,8 +43,8 @@ export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, phone: string, password: string) => Promise<void>;
-  logout: () => void;
-  updateUser: (data: Partial<User>) => void;
+  logout: () => Promise<void>;
+  updateUser: (data: Partial<User>) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -59,10 +59,11 @@ export interface DataContextType {
   projects: ProjectData[];
   leads: InvestorLead[];
   users: User[]; // Simulated user database for admin
-  updateProject: (id: string, data: Partial<ProjectData>) => void;
-  addProject: (data: ProjectData) => void;
-  deleteProject: (id: string) => void;
+  isLoading: boolean;
+  updateProject: (id: string, data: Partial<ProjectData>) => Promise<void>;
+  addProject: (data: ProjectData) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
   uploadPitchDeck: (id: string, file: File) => Promise<string>;
-  logLead: (lead: Omit<InvestorLead, 'id' | 'timestamp'>) => void;
-  updateUserRole: (userId: string, newRole: User['role']) => void;
+  logLead: (lead: Omit<InvestorLead, 'id' | 'timestamp'>) => Promise<void>;
+  updateUserRole: (userId: string, newRole: User['role']) => Promise<void>;
 }

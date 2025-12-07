@@ -1,115 +1,152 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthContextType } from '../types';
+import { supabase } from '../supabaseClient';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const ADMIN_EMAIL = 'investors@inclusivbank.lat';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check local storage for existing session
-    const storedUser = localStorage.getItem('soulware_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse user session');
-        localStorage.removeItem('soulware_user');
+  // Helper to fetch profile data from the 'profiles' table
+  const fetchProfile = async (userId: string, email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
       }
+
+      return {
+        id: userId,
+        email: email,
+        name: data.name || '',
+        phone: data.phone || '',
+        role: data.role || 'limited',
+        interestedProjectIds: data.interested_projects || []
+      } as User;
+    } catch (err) {
+      console.error('Unexpected error fetching profile:', err);
+      return null;
     }
-    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    // Check active session on mount
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id, session.user.email!);
+        if (profile) {
+          setUser(profile);
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const profile = await fetchProfile(session.user.id, session.user.email!);
+        setUser(profile);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const updateUser = (data: Partial<User>) => {
+  const updateUser = async (data: Partial<User>) => {
     if (!user) return;
+    
+    // Update local state optimistically
     const updatedUser = { ...user, ...data };
     setUser(updatedUser);
-    localStorage.setItem('soulware_user', JSON.stringify(updatedUser));
+
+    // Map frontend camelCase to DB snake_case
+    const dbUpdates: any = {};
+    if (data.name) dbUpdates.name = data.name;
+    if (data.phone) dbUpdates.phone = data.phone;
+    if (data.role) dbUpdates.role = data.role;
+    if (data.interestedProjectIds) dbUpdates.interested_projects = data.interestedProjectIds;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(dbUpdates)
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error updating profile:', error);
+      // Revert if necessary, or just log
+    }
   };
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
-    // Simulate API call
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const normalizedEmail = email.toLowerCase().trim();
-        const isAdminEmail = normalizedEmail === ADMIN_EMAIL;
-
-        // Admin Security Check
-        if (isAdminEmail) {
-          if (password !== 'HernanJuan2026') {
-            setIsLoading(false);
-            reject(new Error('Invalid admin credentials.'));
-            return;
-          }
-        } else {
-          // Standard user validation
-          if (password.length < 6) {
-            setIsLoading(false);
-            reject(new Error('Password must be at least 6 characters'));
-            return;
-          }
-        }
-        
-        const role = isAdminEmail ? 'admin' : 'investor';
-        
-        const mockUser: User = {
-          id: 'usr_' + Math.random().toString(36).substr(2, 9),
-          name: isAdminEmail ? 'Admin' : 'User ' + email.split('@')[0],
-          email: normalizedEmail,
-          phone: '', 
-          role: role,
-          interestedProjectIds: []
-        };
-        
-        setUser(mockUser);
-        localStorage.setItem('soulware_user', JSON.stringify(mockUser));
-        setIsLoading(false);
-        resolve();
-      }, 1000);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
+
+    if (error) {
+      setIsLoading(false);
+      throw new Error(error.message);
+    }
+    // onAuthStateChange will handle the rest
   };
 
   const register = async (name: string, email: string, phone: string, password: string): Promise<void> => {
     setIsLoading(true);
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const normalizedEmail = email.toLowerCase().trim();
-        
-        // Prevent registering as admin via standard signup
-        if (normalizedEmail === ADMIN_EMAIL) {
-          setIsLoading(false);
-          reject(new Error('This email is reserved. Please log in.'));
-          return;
-        }
-
-        // New users start as 'limited' until vetted
-        const role = 'limited';
-
-        const newUser: User = {
-          id: 'usr_' + Math.random().toString(36).substr(2, 9),
-          name,
-          email: normalizedEmail,
-          phone,
-          role,
-          interestedProjectIds: []
-        };
-        
-        setUser(newUser);
-        localStorage.setItem('soulware_user', JSON.stringify(newUser));
-        setIsLoading(false);
-        resolve();
-      }, 1000);
+    
+    // 1. Sign up the user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
     });
+
+    if (authError) {
+      setIsLoading(false);
+      throw new Error(authError.message);
+    }
+
+    if (authData.user) {
+      // 2. Create the profile entry
+      // Note: We use 'limited' as default role.
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          { 
+            id: authData.user.id, 
+            name, 
+            phone, 
+            role: 'limited',
+            email: email // Storing email in profiles for easier admin viewing
+          }
+        ]);
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        // Clean up auth user if profile creation fails? 
+        // For now, we assume success or manual fix.
+      }
+    }
+    
+    setIsLoading(false);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('soulware_user');
   };
 
   return (

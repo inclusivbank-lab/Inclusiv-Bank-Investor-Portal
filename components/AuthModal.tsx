@@ -104,4 +104,38 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 type="password" 
                 placeholder={t('auth.password')}
                 required
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none bg-white dark:bg-slate-800 dark:text-white"
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+              />
+            </div>
+
+            {error && <p className="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/20 p-2 rounded">{error}</p>}
+
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-soul-dark hover:bg-slate-800 dark:bg-white dark:text-soul-dark dark:hover:bg-slate-200 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 mt-2"
+            >
+              {loading ? <Loader2 className="animate-spin" size={20} /> : (mode === 'login' ? t('auth.login') : t('auth.signup'))}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button 
+              onClick={() => {
+                setMode(mode === 'login' ? 'register' : 'login');
+                setError('');
+              }}
+              className="text-soul-primary hover:text-blue-700 text-sm font-medium"
+            >
+              {mode === 'login' ? t('auth.switchRegister') : t('auth.switchLogin')}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AuthModal;
