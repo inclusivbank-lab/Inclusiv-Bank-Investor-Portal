@@ -7,6 +7,7 @@ export interface User {
   email: string;
   phone: string;
   role: 'investor' | 'admin';
+  interestedProjectIds?: string[];
 }
 
 export type LocalizedContent = {
@@ -41,6 +42,7 @@ export interface AuthContextType {
   register: (name: string, email: string, phone: string, password: string) => Promise<void>;
   socialLogin: (provider: 'google' | 'linkedin', email?: string) => Promise<void>;
   logout: () => void;
+  updateUser: (data: Partial<User>) => void;
   isLoading: boolean;
 }
 

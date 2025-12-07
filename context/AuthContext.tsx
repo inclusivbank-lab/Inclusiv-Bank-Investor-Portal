@@ -24,6 +24,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(false);
   }, []);
 
+  const updateUser = (data: Partial<User>) => {
+    if (!user) return;
+    const updatedUser = { ...user, ...data };
+    setUser(updatedUser);
+    localStorage.setItem('soulware_user', JSON.stringify(updatedUser));
+  };
+
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     // Simulate API call
@@ -44,7 +51,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           name: 'User ' + email.split('@')[0],
           email,
           phone: '', 
-          role: role
+          role: role,
+          interestedProjectIds: []
         };
         
         setUser(mockUser);
@@ -66,7 +74,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           name,
           email,
           phone,
-          role
+          role,
+          interestedProjectIds: []
         };
         
         setUser(newUser);
@@ -81,24 +90,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
     return new Promise((resolve) => {
       setTimeout(() => {
-        // For simulation purposes, if the user manually typed the admin email 
-        // into a "fake" google login prompt, we'd use that. 
-        // Since we don't have a real Google pop-up, we'll default to a generic user
-        // UNLESS this is specifically for the admin demo instructions.
-        
-        // In a real app, Google returns the email. Here we simulate it.
-        // If you are testing, use the login form with the specific email.
-        // Or for this demo, we can randomly assign the admin email if prompted via a specific flow,
-        // but typically social login just works.
-        
-        // Let's assume standard social login is NOT admin unless we mock it.
-        // However, the prompt specifically asked for google sign in FOR the admin panel.
-        // We will fallback to a standard user unless the developer hardcodes the simulation 
-        // or uses the manual login form with that email.
-        
-        // MOCK: If this function is called, we'll simulate a standard user
-        // UNLESS the 'manualEmail' arg is passed (used for testing).
-        
         const email = manualEmail || (provider === 'google' ? 'user@gmail.com' : 'user@linkedin.com');
         const role = email.toLowerCase() === ADMIN_EMAIL ? 'admin' : 'investor';
 
@@ -107,7 +98,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           name: provider === 'google' ? 'Google User' : 'LinkedIn User',
           email: email,
           phone: '',
-          role: role
+          role: role,
+          interestedProjectIds: []
         };
         
         setUser(mockUser);
@@ -124,7 +116,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, socialLogin, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, socialLogin, logout, updateUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

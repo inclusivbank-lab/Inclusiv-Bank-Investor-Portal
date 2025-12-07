@@ -12,8 +12,34 @@ interface GateModalProps {
   language?: Language; // kept for compat
 }
 
+// --- GOOGLE SHEETS CONFIGURATION ---
+// To enable database creation:
+// 1. Create a Google Sheet.
+// 2. Go to Extensions > Apps Script.
+// 3. Paste the following code into the script editor:
+/*
+  function doPost(e) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var params = e.parameter;
+    sheet.appendRow([
+      new Date(), 
+      params.name, 
+      params.email, 
+      params.phone, 
+      params.project_title, 
+      params.project_id
+    ]);
+    return ContentService.createTextOutput("Success");
+  }
+*/
+// 4. Click Deploy > New Deployment.
+// 5. Select type "Web app", set "Who has access" to "Anyone", and click Deploy.
+// 6. Copy the Web App URL and paste it below.
+const GOOGLE_SHEETS_WEBHOOK_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+// -----------------------------------
+
 const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { t, language } = useLanguage();
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +63,39 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    // --- SEND DATA TO GOOGLE SHEETS ---
+    try {
+      const payload = new FormData();
+      payload.append('timestamp', new Date().toISOString());
+      payload.append('name', formData.name);
+      payload.append('email', formData.email);
+      payload.append('phone', formData.phone);
+      payload.append('project_title', project.title);
+      payload.append('project_id', project.id);
+      payload.append('funding_ask', project.fundingAsk);
+
+      if (GOOGLE_SHEETS_WEBHOOK_URL && !GOOGLE_SHEETS_WEBHOOK_URL.includes('YOUR_GOOGLE_APPS_SCRIPT')) {
+        await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: payload
+        });
+        console.log('Investor interest logged to database.');
+      }
+    } catch (err) {
+      console.error('Failed to log data to sheets:', err);
+    }
+    // ----------------------------------
+
+    // --- UPDATE LOCAL USER INTEREST ---
+    if (user) {
+      const currentInterests = user.interestedProjectIds || [];
+      if (!currentInterests.includes(project.id)) {
+        updateUser({ interestedProjectIds: [...currentInterests, project.id] });
+      }
+    }
+    // ----------------------------------
+
     console.log(`Lead Captured for ${project.id}:`, formData);
 
     setTimeout(() => {
