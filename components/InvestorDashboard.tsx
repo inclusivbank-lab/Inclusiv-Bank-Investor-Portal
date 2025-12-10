@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
@@ -220,7 +221,7 @@ const InvestorDashboard: React.FC<{ onExplore: () => void }> = ({ onExplore }) =
                     href="mailto:investors@inclusivbank.lat" 
                     className="flex items-center justify-center gap-2 w-full py-3 bg-white dark:bg-slate-800 text-soul-primary font-semibold rounded-xl shadow-sm hover:shadow-md transition-all text-sm group"
                   >
-                    <span className="group-hover:underline">investors@inclusivbank.lat</span>
+                    <span className="group-hover:underline">Contact Support</span>
                   </a>
                 </div>
               </div>

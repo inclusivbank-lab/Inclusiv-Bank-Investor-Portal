@@ -1,8 +1,8 @@
+
 import React, { useState } from 'react';
-import { ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, Download, X, Loader2, Linkedin, Twitter, Moon, Sun, Image as ImageIcon, Zap, Check } from 'lucide-react';
-import { ProjectData, Language } from '../types';
+import { BarChart3, Users, Leaf, Loader2, Image as ImageIcon, Zap, MessageSquare } from 'lucide-react';
+import { ProjectData } from '../types';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
 import { GoogleGenAI } from "@google/genai";
 
 interface ProjectCardProps {
@@ -12,23 +12,9 @@ interface ProjectCardProps {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) => {
   const { t, language } = useLanguage();
-  const { user } = useAuth();
   const [imgError, setImgError] = useState(!project.imageUrl);
   const [insightLoading, setInsightLoading] = useState(false);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
-
-  const isInterested = user?.interestedProjectIds?.includes(project.id);
-
-  const getShareUrls = () => {
-    const baseUrl = window.location.origin;
-    const desc = project.shortDescription[language] || project.shortDescription['en'];
-    const shareText = encodeURIComponent(`${t('btn.share')}: ${project.title} - ${desc}`);
-    
-    return {
-      twitter: `https://twitter.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(baseUrl)}`,
-      linkedin: `https://www.linkedin.com/feed/?shareActive=true&text=${shareText} ${encodeURIComponent(baseUrl)}`
-    };
-  };
 
   const handleQuickInsight = async () => {
     if (aiInsight) return;
@@ -56,7 +42,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) =
     }
   };
 
-  const shareUrls = getShareUrls();
   const shortDesc = project.shortDescription[language] || project.shortDescription['en'];
 
   const getFallbackIcon = () => {
@@ -74,7 +59,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) =
   };
 
   return (
-    <div className={`group bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl dark:shadow-slate-900/50 transition-all duration-300 overflow-hidden border ${isInterested ? 'border-soul-primary dark:border-soul-primary ring-1 ring-soul-primary' : 'border-slate-100 dark:border-slate-800'} flex flex-col h-full`}>
+    <div className={`group bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl dark:shadow-slate-900/50 transition-all duration-300 overflow-hidden border border-slate-100 dark:border-slate-800 flex flex-col h-full`}>
       <div className="relative h-48 overflow-hidden bg-slate-100 dark:bg-slate-800">
         {!imgError ? (
           <>
@@ -98,13 +83,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) =
             {project.category}
           </span>
         </div>
-        {isInterested && (
-          <div className="absolute top-4 right-4 z-20">
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-md shadow-lg">
-              <Check size={12} /> Access Granted
-            </span>
-          </div>
-        )}
       </div>
       
       <div className="p-6 flex-1 flex flex-col">
@@ -112,26 +90,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) =
           <h3 className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-soul-primary dark:group-hover:text-soul-primary transition-colors flex-1">
             {project.title}
           </h3>
-          <div className="flex gap-2 ml-2 shrink-0">
-            <a 
-              href={shareUrls.linkedin} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-slate-400 hover:text-[#0077b5] dark:hover:text-[#0077b5] transition-colors p-1"
-              title={`${t('btn.share')} on LinkedIn`}
-            >
-              <Linkedin size={18} />
-            </a>
-            <a 
-              href={shareUrls.twitter} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-slate-400 hover:text-black dark:hover:text-white transition-colors p-1"
-              title={`${t('btn.share')} on X (Twitter)`}
-            >
-              <Twitter size={18} />
-            </a>
-          </div>
         </div>
         
         <p className="text-slate-600 dark:text-slate-300 mb-6 flex-1 line-clamp-3 leading-relaxed">
@@ -186,14 +144,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onRequestAccess }) =
 
         <button 
           onClick={() => onRequestAccess(project)}
-          className={`w-full py-3 px-4 border-2 font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-sm hover:shadow-md mt-auto ${
-            isInterested 
-            ? 'bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30' 
-            : 'bg-white dark:bg-slate-800 border-soul-dark dark:border-white text-soul-dark dark:text-white hover:bg-soul-dark dark:hover:bg-white hover:text-white dark:hover:text-soul-dark'
-          }`}
+          className="w-full py-3 px-4 border-2 font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-sm hover:shadow-md mt-auto bg-white dark:bg-slate-800 border-soul-dark dark:border-white text-soul-dark dark:text-white hover:bg-soul-dark dark:hover:bg-white hover:text-white dark:hover:text-soul-dark"
         >
-          {isInterested ? (language === 'es' ? 'Ver de nuevo' : 'View Again') : t('btn.learnMore')}
-          <ArrowRight size={18} className="transform group-hover/btn:translate-x-1 transition-transform" />
+          {t('gate.download')}
+          <MessageSquare size={18} className="transform group-hover/btn:translate-x-1 transition-transform" />
         </button>
       </div>
     </div>

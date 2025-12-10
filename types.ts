@@ -1,15 +1,6 @@
 
 export type Language = 'en' | 'es' | 'fr' | 'de';
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: 'investor' | 'admin' | 'limited';
-  interestedProjectIds?: string[];
-}
-
 export type LocalizedContent = {
   [key in Language]?: string;
 } & {
@@ -33,10 +24,27 @@ export interface InvestorLead {
   id: string;
   name: string;
   email: string;
+  company?: string; // Added company field
   phone: string;
   projectTitle: string;
   projectId: string;
   timestamp: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  phone: string;
+  role: 'limited' | 'investor' | 'admin';
+  interestedProjectIds?: string[];
+}
+
+export interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+  availableLanguages: { code: Language; label: string }[];
 }
 
 export interface AuthContextType {
@@ -48,22 +56,15 @@ export interface AuthContextType {
   isLoading: boolean;
 }
 
-export interface LanguageContextType {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
-  availableLanguages: { code: Language; label: string }[];
-}
-
 export interface DataContextType {
   projects: ProjectData[];
   leads: InvestorLead[];
-  users: User[]; // Simulated user database for admin
+  users: User[];
   isLoading: boolean;
   updateProject: (id: string, data: Partial<ProjectData>) => Promise<void>;
   addProject: (data: ProjectData) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   uploadPitchDeck: (id: string, file: File) => Promise<string>;
   logLead: (lead: Omit<InvestorLead, 'id' | 'timestamp'>) => Promise<void>;
-  updateUserRole: (userId: string, newRole: User['role']) => Promise<void>;
+  updateUserRole: (id: string, role: User['role']) => Promise<void>;
 }

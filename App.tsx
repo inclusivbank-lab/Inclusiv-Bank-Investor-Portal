@@ -1,43 +1,28 @@
+
 import React, { useState, useEffect } from 'react';
-import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, LogIn, LogOut, User as UserIcon, Linkedin, Twitter, Moon, Sun, ChevronDown, Settings, LayoutDashboard } from 'lucide-react';
+import { Globe, ArrowRight, BarChart3, Users, Leaf, ShieldCheck, Mail, Moon, Sun, ChevronDown, Phone } from 'lucide-react';
 import GateModal from './components/GateModal';
-import AuthModal from './components/AuthModal';
 import ChatBot from './components/ChatBot';
 import ProjectCard from './components/ProjectCard';
-import AdminPanel from './components/AdminPanel';
-import InvestorDashboard from './components/InvestorDashboard';
-import InvestPage from './components/InvestPage';
 import { ProjectData } from './types';
-import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { DataProvider, useData } from './context/DataContext';
 
 const NavBar = ({ 
-  onLoginClick,
   isDark,
   toggleTheme,
-  onAdminClick,
-  onDashboardClick,
-  onHomeClick,
-  onInvestClick
 }: { 
-  onLoginClick: () => void;
   isDark: boolean;
   toggleTheme: () => void;
-  onAdminClick: () => void;
-  onDashboardClick: () => void;
-  onHomeClick: () => void;
-  onInvestClick: () => void;
 }) => {
-  const { user, logout } = useAuth();
-  const { language, setLanguage, t, availableLanguages } = useLanguage();
+  const { language, setLanguage, availableLanguages } = useLanguage();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   return (
     <nav className="sticky top-0 z-40 bg-white/80 dark:bg-soul-dark/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-24">
-          <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
+          <div className="flex items-center cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
             {/* Logo Image */}
             <img 
               src="/logo.png" 
@@ -50,23 +35,6 @@ const NavBar = ({
               }}
             />
           </div>
-          
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center gap-6">
-            <button
-              onClick={onHomeClick}
-              className="text-slate-600 dark:text-slate-300 hover:text-soul-primary dark:hover:text-soul-primary font-medium text-sm transition-colors"
-            >
-              Home
-            </button>
-            <button
-              onClick={onInvestClick}
-              className="text-slate-600 dark:text-slate-300 hover:text-soul-primary dark:hover:text-soul-primary font-medium text-sm transition-colors"
-            >
-              Invest
-            </button>
-          </div>
-
           <div className="flex items-center gap-4">
             <button
               onClick={toggleTheme}
@@ -103,49 +71,6 @@ const NavBar = ({
                 </div>
               )}
             </div>
-            
-            {user ? (
-              <div className="flex items-center gap-4">
-                <button
-                   onClick={onDashboardClick}
-                   className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-soul-primary font-medium text-sm hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
-                >
-                  <LayoutDashboard size={18} />
-                  <span>{t('nav.dashboard')}</span>
-                </button>
-
-                <div className="hidden md:flex flex-col items-end">
-                  <span className="text-sm font-semibold text-slate-900 dark:text-white">{user.name}</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 uppercase">{user.role}</span>
-                </div>
-                
-                {user.role === 'admin' && (
-                  <button
-                    onClick={onAdminClick}
-                    className="p-2 text-soul-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
-                    title="Admin Panel"
-                  >
-                    <Settings size={20} />
-                  </button>
-                )}
-
-                <button 
-                  onClick={logout}
-                  className="p-2 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
-                  title={t('nav.logout')}
-                >
-                  <LogOut size={20} />
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={onLoginClick}
-                className="flex items-center gap-2 px-4 py-2 bg-soul-dark dark:bg-white text-white dark:text-soul-dark rounded-lg hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors text-sm font-medium"
-              >
-                <LogIn size={16} />
-                <span>{t('nav.login')}</span>
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -156,9 +81,6 @@ const NavBar = ({
 const MainContent = () => {
   const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
   const [isGateOpen, setIsGateOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [view, setView] = useState<'home' | 'dashboard' | 'invest'>('home');
   
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -168,7 +90,6 @@ const MainContent = () => {
     return false;
   });
   
-  const { user } = useAuth();
   const { projects } = useData();
   const { t } = useLanguage();
 
@@ -182,125 +103,113 @@ const MainContent = () => {
     }
   }, [isDark]);
 
-  useEffect(() => {
-    // Redirect to home if logged out while on dashboard
-    if (!user && view === 'dashboard') {
-      setView('home');
-    }
-  }, [user, view]);
-
   const toggleTheme = () => setIsDark(!isDark);
 
   const handleRequestAccess = (project: ProjectData) => {
-    if (!user) {
-      setIsAuthOpen(true);
-    } else {
-      setSelectedProject(project);
-      setIsGateOpen(true);
-    }
+    setSelectedProject(project);
+    setIsGateOpen(true);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-soul-dark font-sans pb-20 transition-colors duration-300">
       <NavBar 
-        onLoginClick={() => setIsAuthOpen(true)}
         isDark={isDark}
         toggleTheme={toggleTheme}
-        onAdminClick={() => setIsAdminOpen(true)}
-        onDashboardClick={() => setView('dashboard')}
-        onHomeClick={() => setView('home')}
-        onInvestClick={() => setView('invest')}
       />
 
-      {view === 'invest' ? (
-        <InvestPage />
-      ) : view === 'dashboard' ? (
-        <InvestorDashboard onExplore={() => setView('home')} />
-      ) : (
-        <>
-          {/* Hero Section */}
-          <section className="relative overflow-hidden bg-soul-dark text-white py-24 sm:py-32">
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-20"></div>
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-soul-dark dark:to-soul-dark"></div>
-            
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <h1 className="font-serif text-5xl md:text-7xl font-bold mb-8 leading-tight tracking-tight">
-                {t('hero.title')}
-              </h1>
-              <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-12 font-light leading-relaxed">
-                {t('hero.subtitle')}
-              </p>
-              <div className="flex flex-wrap justify-center gap-8 text-sm md:text-base font-medium text-slate-400">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="text-soul-accent" />
-                  <span>{t('label.highRoi')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="text-soul-primary" />
-                  <span>{t('label.socialImpact')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Leaf className="text-green-400" />
-                  <span>{t('label.sustainability')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="text-blue-400" />
-                  <span>{t('label.blockchain')}</span>
-                </div>
-              </div>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-soul-dark text-white py-24 sm:py-32">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-soul-dark dark:to-soul-dark"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="font-serif text-5xl md:text-7xl font-bold mb-8 leading-tight tracking-tight">
+            {t('hero.title')}
+          </h1>
+          <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-12 font-light leading-relaxed">
+            {t('hero.subtitle')}
+          </p>
+          <div className="flex flex-wrap justify-center gap-8 text-sm md:text-base font-medium text-slate-400">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="text-soul-accent" />
+              <span>{t('label.highRoi')}</span>
             </div>
-          </section>
-
-          {/* Projects Grid */}
-          <section className="py-12 bg-slate-50 dark:bg-soul-dark transition-colors duration-300" id="projects">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-end justify-between mb-8">
-                <h2 className="font-serif text-3xl font-bold text-slate-900 dark:text-white">
-                  {t('section.opportunities')}
-                </h2>
-                <div className="h-1 w-24 bg-soul-primary hidden sm:block"></div>
-              </div>
-
-              {projects.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
-                  {projects.map((project) => (
-                    <ProjectCard 
-                      key={project.id} 
-                      project={project} 
-                      onRequestAccess={handleRequestAccess} 
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20">
-                  <h3 className="text-xl font-medium text-slate-900 dark:text-white mb-2">No projects available</h3>
-                  <p className="text-slate-500 dark:text-slate-400">Please check back later.</p>
-                </div>
-              )}
+            <div className="flex items-center gap-2">
+              <Users className="text-soul-primary" />
+              <span>{t('label.socialImpact')}</span>
             </div>
-          </section>
-
-          {/* Contact Section */}
-          <section className="bg-white dark:bg-slate-900 py-20 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
-            <div className="max-w-4xl mx-auto px-4 text-center">
-              <div className="inline-block p-4 bg-blue-50 dark:bg-blue-900/30 rounded-full text-soul-primary mb-6">
-                <Mail size={32} />
-              </div>
-              <h2 className="font-serif text-3xl font-bold text-slate-900 dark:text-white mb-4">{t('section.contact')}</h2>
-              <p className="text-slate-600 dark:text-slate-300 text-lg mb-8">
-                {t('section.contactDesc')}
-              </p>
-              <button 
-                onClick={() => setView('invest')}
-                className="inline-flex items-center gap-2 bg-soul-primary hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                Express Your Interest
-                <ArrowRight size={20} />
-              </button>
+            <div className="flex items-center gap-2">
+              <Leaf className="text-green-400" />
+              <span>{t('label.sustainability')}</span>
             </div>
-          </section>
-        </>
-      )}
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="text-blue-400" />
+              <span>{t('label.blockchain')}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Projects Grid */}
+      <section className="py-12 bg-slate-50 dark:bg-soul-dark transition-colors duration-300" id="projects">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-8">
+            <h2 className="font-serif text-3xl font-bold text-slate-900 dark:text-white">
+              {t('section.opportunities')}
+            </h2>
+            <div className="h-1 w-24 bg-soul-primary hidden sm:block"></div>
+          </div>
+
+          {projects.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
+              {projects.map((project) => (
+                <ProjectCard 
+                  key={project.id} 
+                  project={project} 
+                  onRequestAccess={handleRequestAccess} 
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <h3 className="text-xl font-medium text-slate-900 dark:text-white mb-2">No projects available</h3>
+              <p className="text-slate-500 dark:text-slate-400">Please check back later.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="bg-white dark:bg-slate-900 py-20 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <div className="inline-block p-4 bg-blue-50 dark:bg-blue-900/30 rounded-full text-soul-primary mb-6">
+            <Mail size={32} />
+          </div>
+          <h2 className="font-serif text-3xl font-bold text-slate-900 dark:text-white mb-4">{t('section.contact')}</h2>
+          <p className="text-slate-600 dark:text-slate-300 text-lg mb-8">
+            {t('section.contactDesc')}
+          </p>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a 
+              href="mailto:investors@inclusivbank.lat"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-soul-primary hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              <Mail size={20} />
+              {t('btn.contact')}
+            </a>
+            <a 
+              href="https://wa.me/13658555900" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 px-8 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              <Phone size={20} />
+              WhatsApp
+            </a>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="bg-soul-dark text-slate-400 py-12 border-t border-slate-800">
@@ -322,15 +231,6 @@ const MainContent = () => {
         project={selectedProject}
       />
 
-      <AuthModal 
-        isOpen={isAuthOpen} 
-        onClose={() => setIsAuthOpen(false)} 
-      />
-
-      {isAdminOpen && (
-        <AdminPanel onClose={() => setIsAdminOpen(false)} />
-      )}
-
       <ChatBot />
     </div>
   );
@@ -339,11 +239,9 @@ const MainContent = () => {
 function App() {
   return (
     <LanguageProvider>
-      <AuthProvider>
-        <DataProvider>
-          <MainContent />
-        </DataProvider>
-      </AuthProvider>
+      <DataProvider>
+        <MainContent />
+      </DataProvider>
     </LanguageProvider>
   );
 }

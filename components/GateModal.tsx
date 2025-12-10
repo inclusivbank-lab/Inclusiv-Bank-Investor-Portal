@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Download, Loader2, Lock, ShieldAlert } from 'lucide-react';
-import { ProjectData, Language } from '../types';
-import { useAuth } from '../context/AuthContext';
+import { X, Send, Loader2, Building2, MessageSquare } from 'lucide-react';
+import { ProjectData } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { useData } from '../context/DataContext';
 
@@ -10,39 +9,26 @@ interface GateModalProps {
   isOpen: boolean;
   onClose: () => void;
   project: ProjectData | null;
-  language?: Language; // kept for compat
 }
 
-// --- GOOGLE SHEETS CONFIGURATION ---
-const GOOGLE_SHEETS_WEBHOOK_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
-// -----------------------------------
-
 const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
-  const { user, updateUser } = useAuth();
   const { t, language } = useLanguage();
   const { logLead } = useData();
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || ''
-      });
-    } else {
-      setFormData({ name: '', email: '', phone: '' });
+    // Reset form when modal opens
+    if (isOpen) {
+        setFormData({ name: '', email: '', phone: '', company: '' });
+        setIsSuccess(false);
+        setError('');
     }
-    setError('');
-  }, [user, isOpen]);
+  }, [isOpen]);
 
   if (!isOpen || !project) return null;
-
-  // Access Control Check
-  const isLimitedUser = user?.role === 'limited';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,72 +42,24 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
     setError('');
     
     try {
-        // --- SEND DATA TO GOOGLE SHEETS (Legacy/Notification) ---
-        const payload = new FormData();
-        payload.append('timestamp', new Date().toISOString());
-        payload.append('name', formData.name);
-        payload.append('email', formData.email);
-        payload.append('phone', formData.phone);
-        payload.append('project_title', project.title);
-        payload.append('project_id', project.id);
-        payload.append('funding_ask', project.fundingAsk);
-
-        if (GOOGLE_SHEETS_WEBHOOK_URL && !GOOGLE_SHEETS_WEBHOOK_URL.includes('YOUR_GOOGLE_APPS_SCRIPT')) {
-            // Fire and forget
-            fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: payload
-            }).catch(e => console.error("Sheet error", e));
-        }
-
         // --- LOG LEAD INTERNALLY (SUPABASE) ---
         await logLead({
             name: formData.name,
             email: formData.email,
+            company: formData.company,
             phone: formData.phone,
             projectTitle: project.title,
             projectId: project.id
         });
 
-        // --- UPDATE USER INTEREST ---
-        if (user) {
-            const currentInterests = user.interestedProjectIds || [];
-            if (!currentInterests.includes(project.id)) {
-                await updateUser({ interestedProjectIds: [...currentInterests, project.id] });
-            }
-        }
-
         setIsSubmitting(false);
         setIsSuccess(true);
         
-        // DOWNLOAD LOGIC
+        // Show success and close, NO DOWNLOAD
         setTimeout(() => {
-            if (project.pitchDeckUrl) {
-                const link = document.createElement("a");
-                link.href = project.pitchDeckUrl;
-                // Supabase storage URLs are public, but adding download attribute helps
-                link.setAttribute("download", `${project.id}_pitch_deck.pdf`);
-                link.setAttribute("target", "_blank");
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else {
-                const element = document.createElement("a");
-                const fileContent = `Thank you for your interest in ${project.title}.\n\nThis is a placeholder for the pitch deck PDF because the admin has not uploaded a file yet.\n\nProject: ${project.title}\nCategory: ${project.category}\nFunding Ask: ${project.fundingAsk}\n\nLead Info:\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}`;
-                const file = new Blob([fileContent], {type: 'text/plain'});
-                element.href = URL.createObjectURL(file);
-                element.download = `${project.id}_info_sheet.txt`;
-                document.body.appendChild(element);
-                element.click();
-                document.body.removeChild(element);
-            }
-            
-            setTimeout(() => {
-                onClose();
-                setIsSuccess(false);
-            }, 2000);
-        }, 1000);
+            onClose();
+            setIsSuccess(false);
+        }, 4000);
 
     } catch (err) {
         console.error("Submission failed", err);
@@ -143,67 +81,58 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
         <div className="p-8">
           {/* Header */}
           <div className="text-center mb-6">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${isLimitedUser ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500' : 'bg-soul-primary/10 text-soul-primary'}`}>
-              {isLimitedUser ? <Lock size={24} /> : <Download size={24} />}
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-soul-primary/10 text-soul-primary`}>
+              <MessageSquare size={24} />
             </div>
             <h3 className="text-2xl font-serif font-bold text-slate-900 dark:text-white mb-2">
-              {isSuccess ? t('gate.success') : (isLimitedUser ? t('gate.restrictedTitle') : t('gate.title'))}
+              {isSuccess ? t('gate.success') : t('gate.title')}
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-sm">
               {isSuccess 
                 ? t('gate.checkFolder') 
-                : (isLimitedUser 
-                    ? t('gate.restrictedDesc')
-                    : `${t('gate.subtitle')} ${project.title}.`
-                  )
+                : `${t('gate.subtitle')} ${project.title}.`
               }
             </p>
           </div>
 
-          {/* Limited User Warning */}
-          {isLimitedUser && !isSuccess && (
-             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6 text-center">
-                <div className="flex justify-center mb-2">
-                   <ShieldAlert size={20} className="text-amber-600 dark:text-amber-400" />
-                </div>
-                <p className="text-sm text-slate-800 dark:text-slate-200 font-medium mb-2">
-                   {t('gate.accountLimited')}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                   {t('gate.contactAdmin')}
-                </p>
-                <a 
-                   href="mailto:investors@inclusivbank.lat?subject=Request%20Investor%20Status%20Upgrade"
-                   className="inline-block px-4 py-2 bg-amber-100 hover:bg-amber-200 dark:bg-amber-800 dark:hover:bg-amber-700 text-amber-800 dark:text-amber-100 text-sm font-semibold rounded-md transition-colors"
-                >
-                   Contact Admin
-                </a>
-             </div>
-          )}
-
-          {/* Form (Hidden for Limited Users) */}
-          {!isSuccess && !isLimitedUser && (
+          {/* Form */}
+          {!isSuccess && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('auth.name')}</label>
                 <input 
                   type="text" 
                   required
-                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 bg-white dark:bg-slate-800 dark:text-white"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all bg-white dark:bg-slate-800 dark:text-white"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  readOnly={!!user?.name}
+                  placeholder="John Doe"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Company / Organization</label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all bg-white dark:bg-slate-800 dark:text-white"
+                    value={formData.company}
+                    onChange={(e) => setFormData({...formData, company: e.target.value})}
+                    placeholder="Acme Ventures"
+                  />
+                  <Building2 className="absolute right-3 top-2.5 text-slate-400" size={18} />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('auth.email')} <span className="text-red-500">*</span></label>
                 <input 
                   type="email" 
                   required
-                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 bg-white dark:bg-slate-800 dark:text-white"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all bg-white dark:bg-slate-800 dark:text-white"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  readOnly={!!user?.email}
+                  placeholder="investor@example.com"
                 />
               </div>
               <div>
@@ -211,10 +140,10 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
                 <input 
                   type="tel" 
                   required
-                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 bg-white dark:bg-slate-800 dark:text-white"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-soul-primary focus:border-transparent outline-none transition-all bg-white dark:bg-slate-800 dark:text-white"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  readOnly={!!user?.phone}
+                  placeholder="+1 (555) 000-0000"
                 />
               </div>
 
@@ -233,15 +162,20 @@ const GateModal: React.FC<GateModalProps> = ({ isOpen, onClose, project }) => {
                   <Loader2 className="animate-spin" size={20} />
                 ) : (
                   <>
-                    <Download size={20} />
+                    <Send size={20} />
                     {t('gate.download')}
                   </>
                 )}
               </button>
               
-              <p className="text-xs text-slate-400 text-center mt-4">
-                {t('gate.privacy')}
-              </p>
+              <div className="text-center mt-4 space-y-2">
+                <p className="text-xs text-slate-400">
+                  {t('gate.privacy')}
+                </p>
+                <p className="text-xs text-soul-primary font-medium">
+                  Support: investors@inclusivbank.lat
+                </p>
+              </div>
             </form>
           )}
 

@@ -49,10 +49,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setProjects(initialProjects);
       }
 
-      // 2. Fetch Leads (Fail gracefully)
+      // 2. Fetch Leads/Inquiries (Fail gracefully)
       try {
         const { data: leadsData, error: leadsError } = await supabase
-          .from('leads')
+          .from('investment_inquiries') // Updated table name
           .select('*')
           .order('timestamp', { ascending: false });
           
@@ -61,6 +61,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             id: l.id,
             name: l.name,
             email: l.email,
+            company: l.company, // Map company
             phone: l.phone,
             projectTitle: l.project_title,
             projectId: l.project_id,
@@ -81,11 +82,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (!usersError && usersData) {
           const mappedUsers: User[] = usersData.map((u: any) => ({
             id: u.id,
-            name: u.name,
             email: u.email,
+            name: u.name,
             phone: u.phone,
             role: u.role,
-            interestedProjectIds: u.interested_projects
+            interestedProjectIds: u.interested_projects || []
           }));
           setUsers(mappedUsers);
         }
@@ -184,12 +185,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const timestamp = new Date().toISOString();
     
     try {
-      // DB Insert
+      // DB Insert into investment_inquiries
       const { data, error } = await supabase
-        .from('leads')
+        .from('investment_inquiries')
         .insert([{
           name: leadData.name,
           email: leadData.email,
+          company: leadData.company, // Insert company
           phone: leadData.phone,
           project_title: leadData.projectTitle,
           project_id: leadData.projectId,
@@ -199,7 +201,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .single();
 
       if (error) {
-        console.error('Error logging lead:', error);
+        console.error('Error logging inquiry:', error);
         // Still update local state for UI feedback
         const mockLead: InvestorLead = { ...leadData, id: 'temp-' + Date.now(), timestamp };
         setLeads(prev => [mockLead, ...prev]);
@@ -211,6 +213,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           id: data.id,
           name: data.name,
           email: data.email,
+          company: data.company,
           phone: data.phone,
           projectTitle: data.project_title,
           projectId: data.project_id,
@@ -223,14 +226,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: User['role']) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-    
+  const updateUserRole = async (id: string, role: User['role']) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, role } : u));
     try {
-      await supabase
+      const { error } = await supabase
         .from('profiles')
-        .update({ role: newRole })
-        .eq('id', userId);
+        .update({ role })
+        .eq('id', id);
+      if (error) console.error('Error updating user role:', error);
     } catch (e) {
       console.error('Update role failed:', e);
     }
